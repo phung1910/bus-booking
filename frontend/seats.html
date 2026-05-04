@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chọn ghế — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .booking-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .booking-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .floor-tab {
+            padding: 7px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1.5px solid var(--gray-200);
+            background: var(--white);
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .floor-tab.active {
+            background: var(--navy);
+            color: var(--white);
+            border-color: var(--navy);
+        }
+
+        .passenger-form {
+            border: 1.5px solid var(--gray-100);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .passenger-form h4 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            color: var(--navy);
+        }
+
+        .passenger-form .form-control {
+            font-size: 13px;
+            padding: 8px 12px;
+        }
+
+        .passenger-form .form-group {
+            margin-bottom: 10px;
+        }
+
+        .passenger-form .form-label {
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Trip info header -->
+    <div style="background:var(--navy);padding:1rem 2rem;color:var(--white)" id="trip-header">
+        <div style="max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+            <a href="javascript:history.back()" style="color:rgba(255,255,255,.6);font-size:14px">← Quay lại</a>
+            <div id="trip-summary" style="font-size:15px;font-weight:600;color:var(--white)">Đang tải...</div>
+        </div>
+    </div>
+
+    <div class="booking-layout">
+
+        <!-- LEFT: Seat map -->
+        <div>
+            <div class="card">
+                <div class="card-header"
+                    style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                    <span>Sơ đồ chỗ ngồi</span>
+                    <div style="display:flex;gap:8px" id="floor-tabs"></div>
+                </div>
+                <div class="card-body">
+                    <!-- Legend -->
+                    <div class="seat-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#D1FAE5;border:1.5px solid #A7F3D0"></div> Còn
+                            trống
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#FEF3C7;border:1.5px solid #FDE68A"></div> Đang
+                            giữ
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:#FEE2E2;border:1.5px solid #FECACA"></div> Đã đặt
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--navy)"></div> Đang chọn
+                        </div>
+                    </div>
+
+                    <!-- Seat grid -->
+                    <div id="seat-map" style="overflow-x:auto">
+                        <div style="text-align:center;padding:2rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Booking summary + form -->
+        <div>
+            <!-- Timer -->
+            <div class="timer-bar" id="timer-bar" style="display:none;margin-bottom:1rem">
+                <span>⏱</span>
+                <div>
+                    <div style="font-size:12px;font-weight:500">Thời gian giữ ghế</div>
+                    <div class="timer-count" id="countdown">10:00</div>
+                </div>
+            </div>
+
+            <!-- Summary card -->
+            <div class="card" style="margin-bottom:1rem">
+                <div class="card-header">Thông tin chuyến</div>
+                <div class="card-body">
+                    <div id="trip-detail">
+                        <div style="text-align:center;padding:1rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selected seats -->
+            <div class="card" style="margin-bottom:1rem" id="selected-panel">
+                <div class="card-header">Ghế đã chọn <span id="selected-count" class="badge badge-navy"
+                        style="margin-left:8px">0</span></div>
+                <div class="card-body">
+                    <div id="selected-seats-list" style="color:var(--gray-400);font-size:14px">Chưa chọn ghế nào</div>
+
+                    <div class="divider"></div>
+
+                    <!-- Tổng tiền -->
+                    <div class="summary-row">
+                        <span>Giá vé / ghế</span>
+                        <span id="price-per-seat">—</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Số ghế</span>
+                        <span id="seat-count-sum">0</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Tổng cộng</span>
+                        <span id="total-price" style="color:var(--amber)">—</span>
+                    </div>
+
+                    <!-- Bước 1: Lock ghế -->
+                    <button class="btn btn-primary btn-block" id="btn-lock" onclick="lockSeats()"
+                        style="margin-top:1rem" disabled>
+                        Giữ ghế (10 phút)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Passenger forms (hiện sau khi lock) -->
+            <div class="card" id="passenger-card" style="display:none">
+                <div class="card-header">Thông tin hành khách</div>
+                <div class="card-body">
+                    <div id="passenger-forms"></div>
+
+                    <button class="btn btn-amber btn-block" onclick="createBooking()">
+                        Tạo đặt vé & Thanh toán →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thanh toán -->
+    <div class="modal-overlay" id="payment-modal" style="display:none">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Xác nhận đặt vé</h3>
+                <button class="btn-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="payment-modal-body"></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Hủy</button>
+                <button class="btn btn-green" onclick="doPayment()">Thanh toán ngay ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const tripId = new URLSearchParams(location.search).get('trip_id');
+        let tripData = null;
+        let seatsData = [];
+        let selectedSeats = [];
+        let currentFloor = 1;
+        let countdownTimer = null;
+        let currentBookingId = null;
+
+        renderNavbar();
+
+        // ── Load sơ đồ ghế ──
+        async function loadSeatMap() {
+            const res = await GET(`/booking/trips/${tripId}/seats`);
+            if (!res?.success) {
+                showToast('Không thể tải sơ đồ ghế.', 'error');
+                return;
+            }
+
+            tripData = res.data.trip;
+            seatsData = res.data.seats;
+
+            // Trip summary header
+            document.getElementById('trip-summary').textContent =
+                `${tripData.company_name} · ${tripData.from_city} → ${tripData.to_city} · ${formatTime(tripData.departure_time)}`;
+
+            // Trip detail card
+            document.getElementById('trip-detail').innerHTML = `
+      <div class="summary-row"><span>Nhà xe</span><strong>${tripData.company_name}</strong></div>
+      <div class="summary-row"><span>Tuyến</span><strong>${tripData.from_city} → ${tripData.to_city}</strong></div>
+      <div class="summary-row"><span>Khởi hành</span><strong>${formatDateTime(tripData.departure_time)}</strong></div>
+      <div class="summary-row"><span>Dự kiến đến</span><strong>${formatDateTime(tripData.arrival_time)}</strong></div>
+      <div class="summary-row"><span>Loại xe</span><strong>${{ seat: 'Ghế ngồi', sleeper: 'Giường nằm', limousine: 'Limousine' }[tripData.vehicle_type]}</strong></div>
+    `;
+
+            document.getElementById('price-per-seat').textContent = formatPrice(tripData.base_price);
+
+            // Tạo floor tabs nếu có 2 tầng
+            const floors = [...new Set(seatsData.map(s => s.floor))].sort();
+            if (floors.length > 1) {
+                document.getElementById('floor-tabs').innerHTML = floors.map(f => `
+        <button class="floor-tab ${f === 1 ? 'active' : ''}" onclick="switchFloor(${f})">
+          Tầng ${f === 1 ? 'dưới' : 'trên'}
+        </button>
+      `).join('');
+            }
+
+            renderSeatGrid(currentFloor);
+        }
+
+        // ── Render sơ đồ ghế ──
+        function renderSeatGrid(floor) {
+            const floorSeats = seatsData.filter(s => s.floor === floor);
+
+            // Nhóm theo hàng (số)
+            const rowMap = {};
+            floorSeats.forEach(seat => {
+                const row = seat.seat_code.replace(/[A-Z]/g, '').replace(/[LU]/g, '');
+                if (!rowMap[row]) rowMap[row] = [];
+                rowMap[row].push(seat);
+            });
+
+            // Lấy danh sách cột duy nhất
+            const cols = [...new Set(floorSeats.map(s => s.seat_code.replace(/[0-9]/g, '').replace(/[LU]/g, '')))].sort();
+
+            const html = Object.keys(rowMap).sort((a, b) => +a - +b).map(row => {
+                const rowSeats = rowMap[row];
+                return `
+        <div class="seat-row">
+          <div class="seat-row-label">${row}</div>
+          ${rowSeats.map(seat => {
+                    const cls = selectedSeats.find(s => s.id === seat.id)
+                        ? 'selected'
+                        : seat.status;
+                    return `<div class="seat ${cls}"
+              title="${seat.seat_code} · ${seat.status}"
+              onclick="toggleSeat(${seat.id}, '${seat.seat_code}', '${seat.status}')">
+              ${seat.seat_code.replace(/[0-9]/g, '')}${row}
+            </div>`;
+                }).join('<div class="seat-aisle"></div>')}
+        </div>
+      `;
+            }).join('');
+
+            document.getElementById('seat-map').innerHTML = `<div class="seat-grid">${html}</div>`;
+        }
+
+        function switchFloor(floor) {
+            currentFloor = floor;
+            document.querySelectorAll('.floor-tab').forEach((el, i) => {
+                el.classList.toggle('active', i + 1 === floor);
+            });
+            renderSeatGrid(floor);
+        }
+
+        // ── Chọn / bỏ ghế ──
+        function toggleSeat(seatId, seatCode, status) {
+            if (status !== 'available') {
+                showToast(status === 'locked' ? 'Ghế này đang được người khác giữ.' : 'Ghế này đã được đặt rồi.', 'warning');
+                return;
+            }
+
+            const idx = selectedSeats.findIndex(s => s.id === seatId);
+            if (idx >= 0) {
+                selectedSeats.splice(idx, 1);
+            } else {
+                selectedSeats.push({ id: seatId, code: seatCode });
+            }
+
+            updateSelectedPanel();
+            renderSeatGrid(currentFloor);
+        }
+
+        // ── Cập nhật panel ghế đã chọn ──
+        function updateSelectedPanel() {
+            const count = selectedSeats.length;
+            const price = tripData?.base_price || 0;
+            const total = price * count;
+
+            document.getElementById('selected-count').textContent = count;
+            document.getElementById('seat-count-sum').textContent = count;
+            document.getElementById('total-price').textContent = formatPrice(total);
+
+            document.getElementById('selected-seats-list').innerHTML = count === 0
+                ? '<span style="color:var(--gray-400);font-size:14px">Chưa chọn ghế nào</span>'
+                : selectedSeats.map(s =>
+                    `<span class="badge badge-navy" style="margin:2px">${s.code}</span>`
+                ).join('');
+
+            document.getElementById('btn-lock').disabled = count === 0;
+        }
+
+        // ── Lock ghế ──
+        async function lockSeats() {
+            if (!isLoggedIn()) {
+                showToast('Vui lòng đăng nhập để đặt vé.', 'error');
+                setTimeout(() => window.location.href = 'login.html', 1000);
+                return;
+            }
+
+            const seatIds = selectedSeats.map(s => s.id);
+            const res = await POST('/booking/lock', { trip_id: +tripId, seat_ids: seatIds }, true);
+
+            if (!res?.success) {
+                showToast(res?.message || 'Không thể giữ ghế.', 'error');
+                loadSeatMap();
+                return;
+            }
+
+            showToast('Đã giữ ghế thành công! Hoàn tất trong 10 phút.', 'success');
+            startCountdown(600);
+
+            // Hiện form hành khách
+            document.getElementById('passenger-card').style.display = 'block';
+            document.getElementById('btn-lock').disabled = true;
+            renderPassengerForms();
+        }
+
+        // ── Render form hành khách ──
+        function renderPassengerForms() {
+            document.getElementById('passenger-forms').innerHTML = selectedSeats.map((s, i) => `
+      <div class="passenger-form">
+        <h4>Ghế ${s.code}</h4>
+        <div class="form-group">
+          <label class="form-label">Họ tên *</label>
+          <input class="form-control" id="pax-name-${i}" placeholder="Nguyễn Văn A" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Số điện thoại *</label>
+          <input class="form-control" id="pax-phone-${i}" placeholder="0901234567"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CCCD/Hộ chiếu *</label>
+          <input class="form-control" id="pax-idcard-${i}" placeholder="012345678901"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email nhận vé *</label>
+          <input class="form-control" id="pax-email-${i}" placeholder="email@example.com" type="email"/>
+        </div>
+      </div>
+    `).join('');
+        }
+
+        // ── Tạo booking ──
+        async function createBooking() {
+            const passengers = selectedSeats.map((_, i) => ({
+                full_name: document.getElementById(`pax-name-${i}`).value.trim(),
+                phone: document.getElementById(`pax-phone-${i}`).value.trim(),
+                id_card: document.getElementById(`pax-idcard-${i}`).value.trim(),
+                email: document.getElementById(`pax-email-${i}`).value.trim()
+            }));
+
+            // Validate
+            for (let i = 0; i < passengers.length; i++) {
+                const p = passengers[i];
+                if (!p.full_name || !p.phone || !p.id_card || !p.email) {
+                    showToast(`Vui lòng điền đầy đủ thông tin hành khách ghế ${selectedSeats[i].code}.`, 'error');
+                    return;
+                }
+            }
+
+            const res = await POST('/booking/create', {
+                trip_id: +tripId,
+                seat_ids: selectedSeats.map(s => s.id),
+                passengers
+            }, true);
+
+            if (!res?.success) {
+                showToast(res?.message || 'Không thể tạo booking.', 'error');
+                return;
+            }
+
+            currentBookingId = res.data.bookingId;
+
+            // Hiện modal xác nhận
+            document.getElementById('payment-modal-body').innerHTML = `
+      <div class="alert alert-success">Booking tạo thành công!</div>
+      <div class="summary-row"><span>Mã booking</span><strong>${res.data.bookingCode}</strong></div>
+      <div class="summary-row"><span>Số ghế</span><strong>${selectedSeats.length} ghế</strong></div>
+      <div class="summary-row total"><span>Tổng thanh toán</span><strong style="color:var(--amber)">${formatPrice(res.data.totalAmount)}</strong></div>
+      <div class="alert alert-warning" style="margin-top:1rem">⏱ Vui lòng thanh toán trước khi hết giờ giữ ghế!</div>
+    `;
+            document.getElementById('payment-modal').style.display = 'flex';
+        }
+
+        // ── Thanh toán mock ──
+        async function doPayment() {
+            const res = await POST(`/booking/${currentBookingId}/mock-payment`, {}, true);
+
+            if (res?.success) {
+                showToast('Thanh toán thành công! Chuyển sang trang vé...', 'success');
+                closeModal();
+                clearInterval(countdownTimer);
+                setTimeout(() => window.location.href = 'my-bookings.html', 1500);
+            } else {
+                showToast(res?.message || 'Thanh toán thất bại.', 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        // ── Đếm ngược ──
+        function startCountdown(seconds) {
+            const bar = document.getElementById('timer-bar');
+            const disp = document.getElementById('countdown');
+            bar.style.display = 'flex';
+            clearInterval(countdownTimer);
+            let remaining = seconds;
+
+            countdownTimer = setInterval(() => {
+                remaining--;
+                const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+                const s = String(remaining % 60).padStart(2, '0');
+                disp.textContent = `${m}:${s}`;
+
+                if (remaining <= 0) {
+                    clearInterval(countdownTimer);
+                    disp.textContent = '00:00';
+                    showToast('Hết thời gian giữ ghế! Vui lòng chọn lại.', 'error');
+                    setTimeout(() => location.reload(), 2000);
+                }
+            }, 1000);
+        }
+
+        loadSeatMap();
+    </script>
+</body>
+
+</html>

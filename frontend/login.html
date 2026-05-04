@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <!-- Hero -->
+        <div class="auth-hero">
+            <div
+                style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;margin-bottom:3rem;color:var(--amber)">
+                <span
+                    style="width:10px;height:10px;background:var(--amber);border-radius:50%;display:inline-block"></span>
+                BusGo
+            </div>
+            <h1>Chào mừng<br />trở lại!</h1>
+            <p>Hàng nghìn chuyến xe mỗi ngày đang chờ bạn. Đăng nhập để tiếp tục hành trình.</p>
+
+            <div style="margin-top:3rem;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.6)">
+                    <span style="font-size:20px">🔒</span>
+                    <span>Bảo mật tuyệt đối với JWT</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.6)">
+                    <span style="font-size:20px">🎫</span>
+                    <span>Quản lý vé dễ dàng</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.6)">
+                    <span style="font-size:20px">🚌</span>
+                    <span>50+ nhà xe đối tác</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="auth-form-container">
+            <div class="auth-form">
+                <h2>Đăng nhập</h2>
+                <p class="subtitle">Nhập thông tin tài khoản của bạn</p>
+
+                <div id="alert-box"></div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" type="email" id="email" placeholder="email@example.com" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input class="form-control" type="password" id="password" placeholder="Mật khẩu của bạn" />
+                </div>
+
+                <button class="btn btn-primary btn-block" style="margin-top:1rem" onclick="doLogin()" id="btn-login">
+                    Đăng nhập
+                </button>
+
+                <div class="divider"></div>
+
+                <p style="text-align:center;font-size:14px;color:var(--gray-600)">
+                    Chưa có tài khoản? <a href="register.html" style="color:var(--navy);font-weight:600">Đăng ký
+                        ngay</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (isLoggedIn()) window.location.href = 'index.html';
+
+        async function doLogin() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-login');
+
+            if (!email || !password) {
+                showToast('Vui lòng nhập đủ thông tin.', 'error');
+                return;
+            }
+
+            btn.textContent = 'Đang đăng nhập...';
+            btn.disabled = true;
+
+            const res = await POST('/auth/login', { email, password });
+
+            if (res?.success) {
+                saveAuth(res.data.access_token, res.data.user);
+                showToast('Đăng nhập thành công!', 'success');
+
+                // Redirect theo role
+                setTimeout(() => {
+                    const role = res.data.user.role;
+                    if (role === 'admin') window.location.href = 'admin.html';
+                    else if (role === 'operator') window.location.href = 'operator.html';
+                    else window.location.href = 'index.html';
+                }, 800);
+            } else {
+                showToast(res?.message || 'Đăng nhập thất bại.', 'error');
+                btn.textContent = 'Đăng nhập';
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter') doLogin();
+        });
+    </script>
+</body>
+
+</html>

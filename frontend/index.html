@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BusGo — Đặt vé xe khách toàn quốc</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        /* Hero section */
+        .hero {
+            background: var(--navy);
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(245, 158, 11, .12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(245, 158, 11, .15);
+            border: 1px solid rgba(245, 158, 11, .3);
+            color: var(--amber);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            color: var(--white);
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 700;
+            margin-bottom: 16px;
+            line-height: 1.15;
+        }
+
+        .hero h1 span {
+            color: var(--amber);
+        }
+
+        .hero p {
+            color: rgba(255, 255, 255, .6);
+            font-size: 18px;
+            max-width: 480px;
+            margin: 0 auto 2.5rem;
+        }
+
+        /* Search form */
+        .search-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 860px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .search-btn {
+            background: var(--amber);
+            color: var(--navy);
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 11px 28px;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all .2s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .search-btn:hover {
+            background: var(--amber-light);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(245, 158, 11, .4);
+        }
+
+        /* Features */
+        .features {
+            padding: 4rem 0;
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            background: var(--navy);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            border: 1.5px solid var(--gray-100);
+            transition: all .2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--amber);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .feature-card h3 {
+            font-size: 17px;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: var(--gray-600);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        /* Popular routes */
+        .route-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--white);
+            border: 1.5px solid var(--gray-200);
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .route-chip:hover {
+            border-color: var(--navy);
+            background: var(--navy);
+            color: var(--white);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-tag">🚌 Hơn 50 nhà xe toàn quốc</div>
+        <h1>Đặt vé xe khách<br /><span>nhanh, dễ, tiết kiệm</span></h1>
+        <p>So sánh giá và đặt vé từ hàng trăm chuyến xe mỗi ngày trên toàn quốc</p>
+
+        <!-- Search form -->
+        <div class="search-card">
+            <div style="text-align:left; margin-bottom:1.25rem">
+                <h2 style="font-size:18px; color:var(--navy)">Tìm chuyến xe</h2>
+            </div>
+            <div class="search-grid">
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Điểm đi</label>
+                    <select class="form-control" id="from-city">
+                        <option value="">Chọn điểm đi</option>
+                        <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                        <option value="Hà Nội">Hà Nội</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                        <option value="Cần Thơ">Cần Thơ</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Điểm đến</label>
+                    <select class="form-control" id="to-city">
+                        <option value="">Chọn điểm đến</option>
+                        <option value="Đà Lạt">Đà Lạt</option>
+                        <option value="Vũng Tàu">Vũng Tàu</option>
+                        <option value="Phan Thiết">Phan Thiết</option>
+                        <option value="Hải Phòng">Hải Phòng</option>
+                        <option value="Đà Nẵng">Đà Nẵng</option>
+                        <option value="Nha Trang">Nha Trang</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin:0">
+                    <label class="form-label">Ngày đi</label>
+                    <input class="form-control" type="date" id="travel-date" />
+                </div>
+
+                <button class="search-btn" onclick="doSearch()">
+                    🔍 Tìm ngay
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tuyến phổ biến -->
+    <section class="section">
+        <div class="container">
+            <h2 style="margin-bottom:1.25rem;font-size:22px">Tuyến phổ biến</h2>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Đà Lạt')">
+                    TP. Hồ Chí Minh → Đà Lạt
+                </div>
+                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Vũng Tàu')">
+                    TP. Hồ Chí Minh → Vũng Tàu
+                </div>
+                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Phan Thiết')">
+                    TP. Hồ Chí Minh → Phan Thiết
+                </div>
+                <div class="route-chip" onclick="quickSearch('Hà Nội','Hải Phòng')">
+                    Hà Nội → Hải Phòng
+                </div>
+                <div class="route-chip" onclick="quickSearch('Hà Nội','Đà Nẵng')">
+                    Hà Nội → Đà Nẵng
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <div class="grid-3">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Giữ ghế 10 phút</h3>
+                    <p>Ghế được giữ riêng trong 10 phút khi bạn đang đặt, không lo bị người khác chọn mất.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Thanh toán an toàn</h3>
+                    <p>Tích hợp VNPay, MoMo. Mọi giao dịch được mã hóa và bảo mật tuyệt đối.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎫</div>
+                    <h3>Vé điện tử tức thì</h3>
+                    <p>Nhận vé điện tử kèm QR Code qua email ngay sau khi thanh toán thành công.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Đặt ngày mặc định là hôm nay
+        document.getElementById('travel-date').value = new Date().toISOString().split('T')[0];
+
+        // Render navbar
+        renderNavbar('home');
+
+        function doSearch() {
+            const from = document.getElementById('from-city').value;
+            const to = document.getElementById('to-city').value;
+            const date = document.getElementById('travel-date').value;
+
+            if (!from || !to) {
+                showToast('Vui lòng chọn điểm đi và điểm đến.', 'error');
+                return;
+            }
+
+            if (from === to) {
+                showToast('Điểm đi và điểm đến không được trùng nhau.', 'error');
+                return;
+            }
+
+            const params = new URLSearchParams({ from, to, date });
+            window.location.href = `trips.html?${params}`;
+        }
+
+        function quickSearch(from, to) {
+            document.getElementById('from-city').value = from;
+            document.getElementById('to-city').value = to;
+            doSearch();
+        }
+    </script>
+</body>
+
+</html>

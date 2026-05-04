@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kết quả tìm kiếm — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <style>
+        .filters {
+            background: var(--white);
+            border-right: 1px solid var(--gray-100);
+            padding: 1.5rem;
+            width: 260px;
+            flex-shrink: 0;
+        }
+
+        .results-layout {
+            display: flex;
+            gap: 0;
+            min-height: calc(100vh - 64px - 80px);
+        }
+
+        .results-main {
+            flex: 1;
+            padding: 1.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: var(--gray-600);
+            margin-bottom: 10px;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-option input[type="checkbox"] {
+            accent-color: var(--navy);
+        }
+
+        .filter-option input[type="radio"] {
+            accent-color: var(--navy);
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .trip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .trip-card {
+            display: grid;
+            grid-template-columns: 160px 1fr auto auto;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .rating-stars {
+            color: var(--amber);
+            font-size: 13px;
+        }
+
+        .seats-left {
+            font-size: 13px;
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        .search-summary {
+            background: var(--navy);
+            color: var(--white);
+            padding: 1.25rem 2rem;
+        }
+
+        .search-summary h2 {
+            font-size: 18px;
+            color: var(--white);
+        }
+
+        .search-summary p {
+            color: rgba(255, 255, 255, .6);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Search summary bar -->
+    <div class="search-summary">
+        <div class="container"
+            style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+            <div>
+                <h2 id="route-title">...</h2>
+                <p id="route-date">...</p>
+            </div>
+            <a href="index.html"><button class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)">✏
+                    Thay đổi</button></a>
+        </div>
+    </div>
+
+    <div class="results-layout">
+        <!-- Sidebar filter -->
+        <div class="filters">
+            <div class="filter-group">
+                <div class="filter-title">Loại xe</div>
+                <label class="filter-option"><input type="checkbox" value="seat" onchange="applyFilter()"> Xe ghế
+                    ngồi</label>
+                <label class="filter-option"><input type="checkbox" value="sleeper" onchange="applyFilter()"> Xe giường
+                    nằm</label>
+                <label class="filter-option"><input type="checkbox" value="limousine" onchange="applyFilter()">
+                    Limousine</label>
+            </div>
+
+            <div class="filter-group">
+                <div class="filter-title">Sắp xếp theo</div>
+                <label class="filter-option"><input type="radio" name="sort" value="departure" checked
+                        onchange="applyFilter()"> Giờ khởi hành</label>
+                <label class="filter-option"><input type="radio" name="sort" value="price_asc" onchange="applyFilter()">
+                    Giá thấp → cao</label>
+                <label class="filter-option"><input type="radio" name="sort" value="price_desc"
+                        onchange="applyFilter()"> Giá cao → thấp</label>
+                <label class="filter-option"><input type="radio" name="sort" value="rating" onchange="applyFilter()">
+                    Đánh giá cao</label>
+            </div>
+        </div>
+
+        <!-- Danh sách chuyến -->
+        <div class="results-main">
+            <div class="results-header">
+                <span id="result-count" style="font-size:14px;color:var(--gray-600)">Đang tải...</span>
+            </div>
+            <div class="trip-list" id="trip-list">
+                <div style="text-align:center;padding:3rem">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const params = new URLSearchParams(location.search);
+        const fromCity = params.get('from');
+        const toCity = params.get('to');
+        const date = params.get('date');
+        let allTrips = [];
+
+        document.getElementById('route-title').textContent =
+            `${fromCity} → ${toCity}`;
+        document.getElementById('route-date').textContent =
+            date ? `Ngày ${new Date(date).toLocaleDateString('vi-VN')}` : 'Tất cả ngày';
+
+        renderNavbar();
+
+        async function loadTrips() {
+            let url = `/booking/search?from_city=${encodeURIComponent(fromCity)}&to_city=${encodeURIComponent(toCity)}`;
+            if (date) url += `&date=${date}`;
+
+            const res = await GET(url);
+            if (res?.success) {
+                allTrips = res.data;
+                renderTrips(allTrips);
+            } else {
+                document.getElementById('trip-list').innerHTML =
+                    `<div class="empty-state"><div class="icon">🚌</div><h3>Không tìm thấy chuyến xe</h3><p>Thử thay đổi ngày đi hoặc tuyến đường khác</p></div>`;
+            }
+        }
+
+        function applyFilter() {
+            const checkedTypes = [...document.querySelectorAll('input[type="checkbox"]:checked')].map(el => el.value);
+            const sortVal = document.querySelector('input[name="sort"]:checked')?.value || 'departure';
+
+            let filtered = allTrips.filter(t => checkedTypes.length === 0 || checkedTypes.includes(t.vehicle_type));
+
+            filtered.sort((a, b) => {
+                if (sortVal === 'price_asc') return a.base_price - b.base_price;
+                if (sortVal === 'price_desc') return b.base_price - a.base_price;
+                if (sortVal === 'rating') return b.avg_rating - a.avg_rating;
+                return new Date(a.departure_time) - new Date(b.departure_time);
+            });
+
+            renderTrips(filtered);
+        }
+
+        const typeLabel = { seat: '🪑 Ghế ngồi', sleeper: '🛏 Giường nằm', limousine: '✨ Limousine' };
+
+        function renderTrips(trips) {
+            document.getElementById('result-count').textContent =
+                `Tìm thấy ${trips.length} chuyến xe`;
+
+            if (trips.length === 0) {
+                document.getElementById('trip-list').innerHTML =
+                    `<div class="empty-state"><div class="icon">🚌</div><h3>Không có chuyến xe phù hợp</h3><p>Thử bỏ bớt bộ lọc</p></div>`;
+                return;
+            }
+
+            document.getElementById('trip-list').innerHTML = trips.map(t => `
+      <div class="card trip-card" onclick="selectTrip(${t.id})">
+        <div class="trip-company">
+          <div class="company-name">${t.company_name}</div>
+          <div class="rating-stars">${'★'.repeat(Math.round(t.avg_rating || 0))}${'☆'.repeat(5 - Math.round(t.avg_rating || 0))}</div>
+          <div style="margin-top:6px">${typeLabel[t.vehicle_type] || t.vehicle_type}</div>
+        </div>
+
+        <div class="trip-times">
+          <div>
+            <div class="trip-time">${formatTime(t.departure_time)}</div>
+            <div style="font-size:12px;color:var(--gray-400)">${fromCity}</div>
+          </div>
+          <div style="flex:1;text-align:center">
+            <div style="color:var(--gray-300);font-size:18px">────►</div>
+            <div class="trip-duration">${t.duration_min ? Math.floor(t.duration_min / 60) + 'h' + t.duration_min % 60 + 'p' : ''}</div>
+          </div>
+          <div>
+            <div class="trip-time">${formatTime(t.arrival_time)}</div>
+            <div style="font-size:12px;color:var(--gray-400)">${toCity}</div>
+          </div>
+        </div>
+
+        <div style="text-align:center">
+          <div class="seats-left">Còn ${t.available_seats} ghế</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-top:4px">${formatDate(t.departure_time)}</div>
+        </div>
+
+        <div style="text-align:right">
+          <div class="trip-price">${formatPrice(t.base_price)}</div>
+          <div class="trip-price-label">/ghế</div>
+          <button class="btn btn-amber btn-sm" style="margin-top:10px">Chọn ghế →</button>
+        </div>
+      </div>
+    `).join('');
+        }
+
+        function selectTrip(tripId) {
+            localStorage.setItem('selectedTrip', JSON.stringify({
+                tripId, from: fromCity, to: toCity, date
+            }));
+            window.location.href = `seats.html?trip_id=${tripId}`;
+        }
+
+        loadTrips();
+    </script>
+</body>
+
+</html>

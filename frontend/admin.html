@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <div class="sidebar-title">Quản trị</div>
+            <div class="sidebar-item active" onclick="showPanel('overview')"><span class="icon">📊</span> Dashboard
+            </div>
+            <div class="sidebar-item" onclick="showPanel('companies')"><span class="icon">🏢</span> Nhà xe</div>
+            <div class="sidebar-item" onclick="showPanel('routes')"><span class="icon">🗺</span> Tuyến đường</div>
+            <div class="sidebar-title" style="margin-top:auto">Tài khoản</div>
+            <div class="sidebar-item" onclick="logout()"><span class="icon">🚪</span> Đăng xuất</div>
+        </div>
+
+        <div class="main-content">
+
+            <!-- Dashboard -->
+            <div id="panel-overview">
+                <h2 style="margin-bottom:1.5rem">Dashboard</h2>
+                <div class="grid-4" style="margin-bottom:2rem" id="admin-stats">
+                    <div style="text-align:center;padding:2rem">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                <div class="alert alert-warning" id="pending-alert" style="display:none">
+                    ⚠ Có <strong id="pending-count">0</strong> nhà xe đang chờ duyệt!
+                    <button class="btn btn-sm btn-amber" style="margin-left:12px" onclick="showPanel('companies')">Xem
+                        ngay</button>
+                </div>
+            </div>
+
+            <!-- Nhà xe -->
+            <div id="panel-companies" style="display:none">
+                <div
+                    style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                    <h2>Quản lý nhà xe</h2>
+                    <div style="display:flex;gap:8px">
+                        <select class="form-control" id="company-filter" style="width:auto" onchange="loadCompanies()">
+                            <option value="">Tất cả</option>
+                            <option value="pending">Chờ duyệt</option>
+                            <option value="approved">Đã duyệt</option>
+                            <option value="blocked">Đã khóa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body" id="companies-table">
+                        <div style="text-align:center;padding:2rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tuyến đường -->
+            <div id="panel-routes" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Quản lý tuyến đường</h2>
+
+                <div class="card" style="max-width:500px;margin-bottom:1.5rem">
+                    <div class="card-header">Thêm tuyến mới</div>
+                    <div class="card-body">
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Điểm đi</label>
+                                <input class="form-control" id="r-from" placeholder="TP. Hồ Chí Minh" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Điểm đến</label>
+                                <input class="form-control" id="r-to" placeholder="Nha Trang" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Khoảng cách (km)</label>
+                                <input class="form-control" type="number" id="r-km" placeholder="440" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Thời gian (phút)</label>
+                                <input class="form-control" type="number" id="r-min" placeholder="480" />
+                            </div>
+                        </div>
+                        <button class="btn btn-amber" onclick="createRoute()">Thêm tuyến →</button>
+                        <div id="route-result" style="margin-top:10px"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Danh sách tuyến đường</div>
+                    <div class="card-body" id="routes-table">
+                        <div style="text-align:center;padding:1rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!isLoggedIn() || getRole() !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
+        renderNavbar('admin');
+
+        function showPanel(name) {
+            document.querySelectorAll('[id^="panel-"]').forEach(p => p.style.display = 'none');
+            document.getElementById('panel-' + name).style.display = 'block';
+            document.querySelectorAll('.sidebar-item').forEach(el => {
+                el.classList.toggle('active', el.getAttribute('onclick')?.includes(name));
+            });
+            if (name === 'overview') loadAdminStats();
+            if (name === 'companies') loadCompanies();
+            if (name === 'routes') loadRoutes();
+        }
+
+        async function loadAdminStats() {
+            const res = await GET('/admin/dashboard', true);
+            if (!res?.success) return;
+            const d = res.data;
+
+            document.getElementById('admin-stats').innerHTML = `
+      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF">👥</div>
+        <div class="stat-value">${d.totalUsers}</div><div class="stat-label">Khách hàng</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5">🏢</div>
+        <div class="stat-value">${d.totalCompanies}</div><div class="stat-label">Nhà xe hoạt động</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7">🎫</div>
+        <div class="stat-value">${d.totalBookings}</div><div class="stat-label">Tổng booking</div></div>
+      <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2">💰</div>
+        <div class="stat-value">${formatPrice(d.totalRevenue)}</div><div class="stat-label">Tổng doanh thu</div></div>
+    `;
+
+            if (d.pendingCompanies > 0) {
+                document.getElementById('pending-count').textContent = d.pendingCompanies;
+                document.getElementById('pending-alert').style.display = 'flex';
+            }
+        }
+
+        async function loadCompanies() {
+            const status = document.getElementById('company-filter')?.value || '';
+            const url = '/admin/companies' + (status ? '?status=' + status : '');
+            const res = await GET(url, true);
+            if (!res?.success) return;
+
+            document.getElementById('companies-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><div class="icon">🏢</div><h3>Không có nhà xe nào</h3></div>'
+                : `<table class="table">
+          <thead><tr><th>Nhà xe</th><th>Chủ sở hữu</th><th>Hoa hồng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+          <tbody>${res.data.map(c => `
+            <tr>
+              <td><strong>${c.name}</strong><br/><span style="font-size:12px;color:var(--gray-400)">${c.phone || ''}</span></td>
+              <td>${c.owner_name}<br/><span style="font-size:12px;color:var(--gray-400)">${c.owner_email}</span></td>
+              <td>${c.commission_rate}%</td>
+              <td>${statusBadge(c.status)}</td>
+              <td>
+                <div style="display:flex;gap:6px;flex-wrap:wrap">
+                  ${c.status === 'pending' ? `<button class="btn btn-green btn-sm" onclick="approveCompany(${c.id})">Duyệt</button>` : ''}
+                  ${c.status !== 'blocked' ? `<button class="btn btn-danger btn-sm" onclick="blockCompany(${c.id})">Khóa</button>` : ''}
+                  <button class="btn btn-outline btn-sm" onclick="setCommission(${c.id})">HH</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}</tbody>
+        </table>`;
+        }
+
+        async function approveCompany(id) {
+            const res = await PATCH(`/admin/companies/${id}/approve`, {});
+            if (res?.success) { showToast('Đã duyệt nhà xe!', 'success'); loadCompanies(); }
+            else showToast(res?.message, 'error');
+        }
+
+        async function blockCompany(id) {
+            if (!confirm('Khóa nhà xe này?')) return;
+            const res = await PATCH(`/admin/companies/${id}/block`, {});
+            if (res?.success) { showToast('Đã khóa nhà xe.', 'success'); loadCompanies(); }
+            else showToast(res?.message, 'error');
+        }
+
+        async function setCommission(id) {
+            const rate = prompt('Nhập tỷ lệ hoa hồng mới (%):', '10');
+            if (!rate) return;
+            const res = await PATCH(`/admin/companies/${id}/commission`, { commission_rate: +rate });
+            if (res?.success) { showToast('Đã cập nhật hoa hồng!', 'success'); loadCompanies(); }
+            else showToast(res?.message, 'error');
+        }
+
+        async function loadRoutes() {
+            const res = await GET('/admin/routes', true);
+            if (!res?.success) return;
+
+            document.getElementById('routes-table').innerHTML =
+                `<table class="table">
+        <thead><tr><th>Điểm đi</th><th>Điểm đến</th><th>Khoảng cách</th><th>Thời gian</th><th>Trạng thái</th></tr></thead>
+        <tbody>${res.data.map(r => `
+          <tr>
+            <td>${r.from_city}</td>
+            <td>${r.to_city}</td>
+            <td>${r.distance_km ? r.distance_km + ' km' : '—'}</td>
+            <td>${r.duration_min ? Math.floor(r.duration_min / 60) + 'h ' + r.duration_min % 60 + 'p' : '—'}</td>
+            <td>${statusBadge(r.status)}</td>
+          </tr>
+        `).join('')}</tbody>
+      </table>`;
+        }
+
+        async function createRoute() {
+            const body = {
+                from_city: document.getElementById('r-from').value,
+                to_city: document.getElementById('r-to').value,
+                distance_km: +document.getElementById('r-km').value || null,
+                duration_min: +document.getElementById('r-min').value || null
+            };
+            const res = await POST('/admin/routes', body, true);
+            const el = document.getElementById('route-result');
+
+            if (res?.success) {
+                el.innerHTML = `<div class="alert alert-success">Tạo tuyến thành công!</div>`;
+                loadRoutes();
+            } else {
+                el.innerHTML = `<div class="alert alert-error">${res?.message}</div>`;
+            }
+        }
+
+        loadAdminStats();
+    </script>
+</body>
+
+</html>

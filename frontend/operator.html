@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard Nhà xe — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <nav class="navbar" id="navbar"></nav>
+
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-title">Nhà xe</div>
+            <div class="sidebar-item active" onclick="showPanel('overview')">
+                <span class="icon">📊</span> Tổng quan
+            </div>
+            <div class="sidebar-item" onclick="showPanel('trips')">
+                <span class="icon">🚌</span> Chuyến xe
+            </div>
+            <div class="sidebar-item" onclick="showPanel('create-trip')">
+                <span class="icon">➕</span> Tạo chuyến mới
+            </div>
+            <div class="sidebar-item" onclick="showPanel('revenue')">
+                <span class="icon">💰</span> Doanh thu
+            </div>
+            <div class="sidebar-item" onclick="showPanel('company')">
+                <span class="icon">🏢</span> Thông tin nhà xe
+            </div>
+            <div class="sidebar-title" style="margin-top:auto">Tài khoản</div>
+            <div class="sidebar-item" onclick="logout()">
+                <span class="icon">🚪</span> Đăng xuất
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div class="main-content">
+
+            <!-- PANEL: Tổng quan -->
+            <div id="panel-overview">
+                <h2 style="margin-bottom:1.5rem">Tổng quan</h2>
+                <div class="grid-4" style="margin-bottom:2rem" id="stats-grid">
+                    <div style="text-align:center;padding:2rem">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Chuyến xe gần nhất</div>
+                    <div class="card-body" id="recent-trips">
+                        <div style="text-align:center;padding:1rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: Danh sách chuyến -->
+            <div id="panel-trips" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Danh sách chuyến xe</h2>
+                <div class="card">
+                    <div class="card-body" id="trips-table">
+                        <div style="text-align:center;padding:2rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: Tạo chuyến -->
+            <div id="panel-create-trip" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Tạo chuyến xe mới</h2>
+                <div class="card" style="max-width:600px">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">Tuyến đường</label>
+                            <select class="form-control" id="new-route"></select>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Giờ khởi hành</label>
+                                <input class="form-control" type="datetime-local" id="new-dept" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Giờ đến dự kiến</label>
+                                <input class="form-control" type="datetime-local" id="new-arrv" />
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Giá vé (VNĐ)</label>
+                                <input class="form-control" type="number" id="new-price" placeholder="250000" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Loại xe</label>
+                                <select class="form-control" id="new-vtype">
+                                    <option value="seat">Ghế ngồi (40 ghế)</option>
+                                    <option value="sleeper">Giường nằm (60 ghế)</option>
+                                    <option value="limousine">Limousine (18 ghế)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-amber btn-block" onclick="createTrip()">Tạo chuyến xe →</button>
+                        <div id="create-result" style="margin-top:12px"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: Doanh thu -->
+            <div id="panel-revenue" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Báo cáo doanh thu</h2>
+                <div class="card" style="max-width:700px">
+                    <div class="card-body">
+                        <div class="grid-2" style="margin-bottom:1rem">
+                            <div class="form-group">
+                                <label class="form-label">Từ ngày</label>
+                                <input class="form-control" type="date" id="rev-from" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Đến ngày</label>
+                                <input class="form-control" type="date" id="rev-to" />
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadRevenue()">Xem báo cáo</button>
+
+                        <div class="divider"></div>
+                        <div id="revenue-result" style="color:var(--gray-400);font-size:14px">Chọn khoảng thời gian và
+                            xem báo cáo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: Thông tin nhà xe -->
+            <div id="panel-company" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Thông tin nhà xe</h2>
+                <div class="card" style="max-width:500px">
+                    <div class="card-body" id="company-info">
+                        <div style="text-align:center;padding:2rem">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        if (!isLoggedIn() || getRole() !== 'operator') {
+            window.location.href = 'login.html';
+        }
+
+        renderNavbar('operator');
+
+        function showPanel(name) {
+            document.querySelectorAll('[id^="panel-"]').forEach(p => p.style.display = 'none');
+            document.getElementById('panel-' + name).style.display = 'block';
+            document.querySelectorAll('.sidebar-item').forEach((el, i) => {
+                el.classList.toggle('active', el.getAttribute('onclick')?.includes(name));
+            });
+
+            if (name === 'overview') loadOverview();
+            if (name === 'trips') loadTrips();
+            if (name === 'create-trip') loadRoutes();
+            if (name === 'revenue') { }
+            if (name === 'company') loadCompany();
+        }
+
+        async function loadOverview() {
+            const [rev, trips] = await Promise.all([
+                GET('/operator/revenue', true),
+                GET('/operator/trips', true)
+            ]);
+
+            if (rev?.success) {
+                const d = rev.data;
+                document.getElementById('stats-grid').innerHTML = `
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EEF2FF">💰</div>
+          <div class="stat-value">${formatPrice(d.gross_revenue)}</div>
+          <div class="stat-label">Tổng doanh thu</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7">🎫</div>
+          <div class="stat-value">${d.total_bookings}</div>
+          <div class="stat-label">Tổng booking</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5">💵</div>
+          <div class="stat-value">${formatPrice(d.net_revenue)}</div>
+          <div class="stat-label">Thu về (sau HH)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEE2E2">📊</div>
+          <div class="stat-value">${d.commission_rate}%</div>
+          <div class="stat-label">Tỷ lệ hoa hồng</div>
+        </div>
+      `;
+            }
+
+            if (trips?.success) {
+                const recent = trips.data.slice(0, 5);
+                document.getElementById('recent-trips').innerHTML = recent.length === 0
+                    ? '<div class="empty-state"><div class="icon">🚌</div><h3>Chưa có chuyến xe nào</h3></div>'
+                    : `<table class="table">
+            <thead><tr><th>Tuyến</th><th>Khởi hành</th><th>Loại xe</th><th>Ghế trống</th><th>Trạng thái</th></tr></thead>
+            <tbody>${recent.map(t => `
+              <tr>
+                <td>${t.from_city} → ${t.to_city}</td>
+                <td>${formatDateTime(t.departure_time)}</td>
+                <td>${t.vehicle_type}</td>
+                <td>${t.available_seats}/${t.total_seats}</td>
+                <td>${statusBadge(t.status)}</td>
+              </tr>
+            `).join('')}</tbody>
+          </table>`;
+            }
+        }
+
+        async function loadTrips() {
+            const res = await GET('/operator/trips', true);
+            if (!res?.success) return;
+
+            document.getElementById('trips-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><div class="icon">🚌</div><h3>Chưa có chuyến xe nào</h3></div>'
+                : `<table class="table">
+          <thead><tr><th>Tuyến</th><th>Khởi hành</th><th>Loại xe</th><th>Giá</th><th>Ghế</th><th>Booking</th><th>Trạng thái</th></tr></thead>
+          <tbody>${res.data.map(t => `
+            <tr>
+              <td>${t.from_city} → ${t.to_city}</td>
+              <td>${formatDateTime(t.departure_time)}</td>
+              <td>${t.vehicle_type}</td>
+              <td>${formatPrice(t.base_price)}</td>
+              <td>${t.available_seats}/${t.total_seats}</td>
+              <td>${t.total_bookings}</td>
+              <td>${statusBadge(t.status)}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>`;
+        }
+
+        async function loadRoutes() {
+            const res = await GET('/admin/routes');
+            if (res?.success) {
+                document.getElementById('new-route').innerHTML = res.data.map(r =>
+                    `<option value="${r.id}">${r.from_city} → ${r.to_city}</option>`
+                ).join('');
+            }
+        }
+
+        async function createTrip() {
+            const body = {
+                route_id: +document.getElementById('new-route').value,
+                departure_time: document.getElementById('new-dept').value.replace('T', ' '),
+                arrival_time: document.getElementById('new-arrv').value.replace('T', ' '),
+                base_price: +document.getElementById('new-price').value,
+                vehicle_type: document.getElementById('new-vtype').value
+            };
+
+            const res = await POST('/operator/trips', body, true);
+            const resultEl = document.getElementById('create-result');
+
+            if (res?.success) {
+                resultEl.innerHTML = `<div class="alert alert-success">Tạo thành công! Đã sinh ${res.data.seatsGenerated} ghế.</div>`;
+                showToast('Tạo chuyến thành công!', 'success');
+            } else {
+                resultEl.innerHTML = `<div class="alert alert-error">${res?.message}</div>`;
+            }
+        }
+
+        async function loadRevenue() {
+            const from = document.getElementById('rev-from').value;
+            const to = document.getElementById('rev-to').value;
+            let url = '/operator/revenue';
+            const q = [];
+            if (from) q.push('from_date=' + from);
+            if (to) q.push('to_date=' + to);
+            if (q.length) url += '?' + q.join('&');
+
+            const res = await GET(url, true);
+            if (res?.success) {
+                const d = res.data;
+                document.getElementById('revenue-result').innerHTML = `
+        <div class="grid-2">
+          <div class="summary-row"><span>Tổng booking PAID</span><strong>${d.total_bookings}</strong></div>
+          <div class="summary-row"><span>Tỷ lệ hoa hồng</span><strong>${d.commission_rate}%</strong></div>
+          <div class="summary-row"><span>Doanh thu gộp</span><strong>${formatPrice(d.gross_revenue)}</strong></div>
+          <div class="summary-row"><span>Hoa hồng nộp</span><strong style="color:var(--red)">${formatPrice(d.commission_amount)}</strong></div>
+        </div>
+        <div class="summary-row total"><span>Doanh thu thực nhận</span><strong style="color:var(--green)">${formatPrice(d.net_revenue)}</strong></div>
+      `;
+            }
+        }
+
+        async function loadCompany() {
+            const res = await GET('/operator/company', true);
+            if (res?.success) {
+                const c = res.data;
+                document.getElementById('company-info').innerHTML = `
+        <div class="summary-row"><span>Tên nhà xe</span><strong>${c.name}</strong></div>
+        <div class="summary-row"><span>Số điện thoại</span><strong>${c.phone || '—'}</strong></div>
+        <div class="summary-row"><span>Địa chỉ</span><strong>${c.address || '—'}</strong></div>
+        <div class="summary-row"><span>Trạng thái</span>${statusBadge(c.status)}</div>
+        <div class="summary-row"><span>Hoa hồng</span><strong>${c.commission_rate}%</strong></div>
+        <div class="summary-row"><span>Đánh giá</span><strong>${c.avg_rating} ⭐ (${c.total_ratings} đánh giá)</strong></div>
+      `;
+            }
+        }
+
+        loadOverview();
+    </script>
+</body>
+
+</html>

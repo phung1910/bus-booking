@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # 1. Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: bus_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: bus_booking
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-MatKhauCuaBan123!}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  # 2. Backend Node.js
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bus_backend
+    restart: always
+    environment:
+      - PORT=3000
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD:-MatKhauCuaBan123!}
+      - DB_NAME=bus_booking
+      - JWT_SECRET=${JWT_SECRET:-mot_chuoi_bi_mat_rat_dai_va_kho_doan}
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+
+  # 3. Frontend Nginx
+  frontend:
+    image: nginx:alpine
+    container_name: bus_frontend
+    restart: always
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

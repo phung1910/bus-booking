@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký — BusGo</title>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <div class="auth-hero">
+            <div
+                style="font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;display:flex;align-items:center;gap:10px;margin-bottom:3rem;color:var(--amber)">
+                <span
+                    style="width:10px;height:10px;background:var(--amber);border-radius:50%;display:inline-block"></span>
+                BusGo
+            </div>
+            <h1>Tham gia<br />BusGo ngay!</h1>
+            <p>Đăng ký miễn phí và bắt đầu đặt vé xe khách với hàng trăm tuyến đường trên toàn quốc.</p>
+        </div>
+
+        <div class="auth-form-container">
+            <div class="auth-form">
+                <h2>Tạo tài khoản</h2>
+                <p class="subtitle">Điền thông tin để đăng ký</p>
+
+                <div class="form-group">
+                    <label class="form-label">Họ và tên</label>
+                    <input class="form-control" id="name" placeholder="Nguyễn Văn A" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" type="email" id="email" placeholder="email@example.com" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Số điện thoại</label>
+                    <input class="form-control" id="phone" placeholder="0901234567" />
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mật khẩu</label>
+                    <input class="form-control" type="password" id="password"
+                        placeholder="Tối thiểu 8 ký tự, có chữ hoa, số và ký tự đặc biệt" />
+                </div>
+
+                <div class="alert alert-info" style="font-size:13px">
+                    Mật khẩu cần: ít nhất 8 ký tự, 1 chữ hoa, 1 số, 1 ký tự đặc biệt (@$!%*?&)
+                </div>
+
+                <button class="btn btn-amber btn-block" onclick="doRegister()" id="btn-register">
+                    Đăng ký ngay
+                </button>
+
+                <div class="divider"></div>
+
+                <p style="text-align:center;font-size:14px;color:var(--gray-600)">
+                    Đã có tài khoản? <a href="login.html" style="color:var(--navy);font-weight:600">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        async function doRegister() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('btn-register');
+
+            if (!name || !email || !password) {
+                showToast('Vui lòng điền đầy đủ thông tin.', 'error');
+                return;
+            }
+
+            btn.textContent = 'Đang đăng ký...';
+            btn.disabled = true;
+
+            const res = await POST('/auth/register', { full_name: name, email, phone, password });
+
+            if (res?.success) {
+                showToast('Đăng ký thành công! Chuyển sang đăng nhập...', 'success');
+                setTimeout(() => window.location.href = 'login.html', 1500);
+            } else {
+                showToast(res?.message || 'Đăng ký thất bại.', 'error');
+                btn.textContent = 'Đăng ký ngay';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
