@@ -248,7 +248,7 @@
         }
 
         async function loadRoutes() {
-            const res = await GET('/admin/routes');
+            const res = await GET('/admin/routes', true);
             if (res?.success) {
                 document.getElementById('new-route').innerHTML = res.data.map(r =>
                     `<option value="${r.id}">${r.from_city} → ${r.to_city}</option>`
