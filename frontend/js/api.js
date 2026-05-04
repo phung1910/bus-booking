@@ -12,7 +12,7 @@ async function api(method, endpoint, body = null, requireAuth = false) {
     if (requireAuth) {
         const token = getToken();
         if (!token) {
-            window.location.href = '/login.html';
+            window.location.href = '/frontend/login.html';
             return;
         }
         headers['Authorization'] = 'Bearer ' + token;
@@ -28,7 +28,7 @@ async function api(method, endpoint, body = null, requireAuth = false) {
         // Token hết hạn → logout
         if (res.status === 401) {
             localStorage.clear();
-            window.location.href = '/login.html';
+            window.location.href = '/frontend/login.html';
             return;
         }
 
