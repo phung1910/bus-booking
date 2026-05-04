@@ -29,6 +29,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-MatKhauCuaBan123!}
       - DB_NAME=bus_booking
       - JWT_SECRET=${JWT_SECRET:-mot_chuoi_bi_mat_rat_dai_va_kho_doan}
+      - JWT_EXPIRES_IN=1d
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-chuoi_refresh_bi_mat_123}
+      - JWT_REFRESH_EXPIRES_IN=7d
     depends_on:
       - db
     ports:
