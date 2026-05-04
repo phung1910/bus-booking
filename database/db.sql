@@ -1,3 +1,4 @@
+﻿SET NAMES utf8mb4;
 -- ============================================================
 -- HỆ THỐNG ĐẶT VÉ XE KHÁCH ĐA NHÀ XE
 -- Phiên bản: 1.0 | Phase 1: Core Schema
