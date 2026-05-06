@@ -1,4 +1,4 @@
-# S? d?ng image Node.js nh? nh?t
+
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./

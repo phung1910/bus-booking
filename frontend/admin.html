@@ -15,10 +15,12 @@
     <div class="dashboard-layout">
         <div class="sidebar">
             <div class="sidebar-title">Quản trị</div>
-            <div class="sidebar-item active" onclick="showPanel('overview')"><span class="icon">📊</span> Dashboard
-            </div>
+            <div class="sidebar-item active" onclick="showPanel('overview')"><span class="icon">📊</span> Dashboard</div>
             <div class="sidebar-item" onclick="showPanel('companies')"><span class="icon">🏢</span> Nhà xe</div>
             <div class="sidebar-item" onclick="showPanel('routes')"><span class="icon">🗺</span> Tuyến đường</div>
+            <div class="sidebar-item" onclick="showPanel('users')"><span class="icon">👥</span> Khách hàng</div>
+            <div class="sidebar-item" onclick="showPanel('bookings')"><span class="icon">🎫</span> Tổng booking</div>
+            <div class="sidebar-item" onclick="showPanel('payments')"><span class="icon">💰</span> Doanh thu</div>
             <div class="sidebar-title" style="margin-top:auto">Tài khoản</div>
             <div class="sidebar-item" onclick="logout()"><span class="icon">🚪</span> Đăng xuất</div>
         </div>
@@ -104,6 +106,36 @@
                 </div>
             </div>
 
+            <!-- Khách hàng -->
+            <div id="panel-users" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Quản lý Khách hàng</h2>
+                <div class="card">
+                    <div class="card-body" id="users-table">
+                        <div style="text-align:center;padding:1rem"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng booking -->
+            <div id="panel-bookings" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Tất cả Booking</h2>
+                <div class="card">
+                    <div class="card-body" id="bookings-table">
+                        <div style="text-align:center;padding:1rem"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Giao dịch/Doanh thu -->
+            <div id="panel-payments" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Giao dịch / Doanh thu</h2>
+                <div class="card">
+                    <div class="card-body" id="payments-table">
+                        <div style="text-align:center;padding:1rem"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -127,6 +159,9 @@
             if (name === 'overview') loadAdminStats();
             if (name === 'companies') loadCompanies();
             if (name === 'routes') loadRoutes();
+            if (name === 'users') loadUsers();
+            if (name === 'bookings') loadAdminBookings();
+            if (name === 'payments') loadPayments();
         }
 
         async function loadAdminStats() {
@@ -135,14 +170,22 @@
             const d = res.data;
 
             document.getElementById('admin-stats').innerHTML = `
-      <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF">👥</div>
-        <div class="stat-value">${d.totalUsers}</div><div class="stat-label">Khách hàng</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5">🏢</div>
-        <div class="stat-value">${d.totalCompanies}</div><div class="stat-label">Nhà xe hoạt động</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7">🎫</div>
-        <div class="stat-value">${d.totalBookings}</div><div class="stat-label">Tổng booking</div></div>
-      <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2">💰</div>
-        <div class="stat-value">${formatPrice(d.totalRevenue)}</div><div class="stat-label">Tổng doanh thu</div></div>
+      <div class="stat-card" style="cursor:pointer" onclick="showPanel('users')">
+        <div class="stat-icon" style="background:#EEF2FF">👥</div>
+        <div class="stat-value">${d.totalUsers}</div><div class="stat-label">Khách hàng</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer" onclick="document.getElementById('company-filter').value='approved'; showPanel('companies')">
+        <div class="stat-icon" style="background:#D1FAE5">🏢</div>
+        <div class="stat-value">${d.totalCompanies}</div><div class="stat-label">Nhà xe hoạt động</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer" onclick="showPanel('bookings')">
+        <div class="stat-icon" style="background:#FEF3C7">🎫</div>
+        <div class="stat-value">${d.totalBookings}</div><div class="stat-label">Tổng booking</div>
+      </div>
+      <div class="stat-card" style="cursor:pointer" onclick="showPanel('payments')">
+        <div class="stat-icon" style="background:#FEE2E2">💰</div>
+        <div class="stat-value">${formatPrice(d.totalRevenue)}</div><div class="stat-label">Tổng doanh thu</div>
+      </div>
     `;
 
             if (d.pendingCompanies > 0) {
@@ -235,6 +278,64 @@
             } else {
                 el.innerHTML = `<div class="alert alert-error">${res?.message}</div>`;
             }
+        }
+
+        async function loadUsers() {
+            const res = await GET('/admin/users', true);
+            if (!res?.success) return;
+            document.getElementById('users-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><h3>Không có khách hàng</h3></div>'
+                : `<table class="table">
+                    <thead><tr><th>Tên</th><th>Email / SĐT</th><th>Trạng thái</th><th>Tham gia</th></tr></thead>
+                    <tbody>${res.data.map(u => `
+                        <tr>
+                            <td><strong>${u.full_name}</strong></td>
+                            <td>${u.email}<br/><span style="font-size:12px;color:var(--gray-400)">${u.phone || ''}</span></td>
+                            <td>${statusBadge(u.status)}</td>
+                            <td>${formatDate(u.created_at)}</td>
+                        </tr>
+                    `).join('')}</tbody>
+                   </table>`;
+        }
+
+        async function loadAdminBookings() {
+            const res = await GET('/admin/bookings', true);
+            if (!res?.success) return;
+            document.getElementById('bookings-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><h3>Không có booking</h3></div>'
+                : `<table class="table">
+                    <thead><tr><th>Mã vé</th><th>Khách hàng</th><th>Tuyến</th><th>Nhà xe</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+                    <tbody>${res.data.map(b => `
+                        <tr>
+                            <td><strong>${b.booking_code}</strong></td>
+                            <td>${b.customer_name}<br/><span style="font-size:12px;color:var(--gray-400)">${b.customer_phone || ''}</span></td>
+                            <td>${b.from_city} → ${b.to_city}</td>
+                            <td>${b.company_name}</td>
+                            <td>${formatPrice(b.total_amount)}</td>
+                            <td>${statusBadge(b.status)}</td>
+                        </tr>
+                    `).join('')}</tbody>
+                   </table>`;
+        }
+
+        async function loadPayments() {
+            const res = await GET('/admin/payments', true);
+            if (!res?.success) return;
+            document.getElementById('payments-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><h3>Không có giao dịch</h3></div>'
+                : `<table class="table">
+                    <thead><tr><th>Mã GD</th><th>Mã vé</th><th>Nhà xe</th><th>Số tiền</th><th>Phương thức</th><th>Thời gian</th></tr></thead>
+                    <tbody>${res.data.map(p => `
+                        <tr>
+                            <td>${p.transaction_id || '—'}</td>
+                            <td><strong>${p.booking_code}</strong></td>
+                            <td>${p.company_name}</td>
+                            <td style="color:var(--green);font-weight:bold">${formatPrice(p.amount)}</td>
+                            <td>${p.payment_method.toUpperCase()}</td>
+                            <td>${formatDateTime(p.created_at)}</td>
+                        </tr>
+                    `).join('')}</tbody>
+                   </table>`;
         }
 
         loadAdminStats();

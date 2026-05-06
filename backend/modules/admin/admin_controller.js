@@ -82,7 +82,38 @@ const getDashboard = async (req, res) => {
     }
 };
 
+const getAllUsers = async (req, res) => {
+    try {
+        const data = await adminService.getAllUsers();
+        return sendSuccess(res, data, 'Lấy danh sách khách hàng thành công.');
+    } catch (e) {
+        console.error('[Admin] getAllUsers:', e);
+        return sendError(res, 'Lỗi server.', 500);
+    }
+};
+
+const getAllBookings = async (req, res) => {
+    try {
+        const data = await adminService.getAllBookings();
+        return sendSuccess(res, data, 'Lấy danh sách booking thành công.');
+    } catch (e) {
+        console.error('[Admin] getAllBookings:', e);
+        return sendError(res, 'Lỗi server.', 500);
+    }
+};
+
+const getAllPayments = async (req, res) => {
+    try {
+        const data = await adminService.getAllPayments();
+        return sendSuccess(res, data, 'Lấy danh sách giao dịch thành công.');
+    } catch (e) {
+        console.error('[Admin] getAllPayments:', e);
+        return sendError(res, 'Lỗi server.', 500);
+    }
+};
+
 module.exports = {
     getAllCompanies, approveCompany, blockCompany,
-    setCommission, getAllRoutes, createRoute, getDashboard
+    setCommission, getAllRoutes, createRoute, getDashboard,
+    getAllUsers, getAllBookings, getAllPayments
 };

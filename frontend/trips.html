@@ -179,6 +179,12 @@
         document.getElementById('route-date').textContent =
             date ? `Ngày ${new Date(date).toLocaleDateString('vi-VN')}` : 'Tất cả ngày';
 
+        if (isLoggedIn()) {
+            const role = getRole();
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'operator') window.location.href = 'operator.html';
+        }
+
         renderNavbar();
 
         async function loadTrips() {

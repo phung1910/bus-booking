@@ -120,7 +120,53 @@ const getDashboard = async () => {
     return { totalUsers, totalCompanies, totalBookings, totalRevenue, pendingCompanies };
 };
 
+// Lấy danh sách khách hàng
+const getAllUsers = async () => {
+    const [rows] = await db.execute(
+        `SELECT id, full_name, email, phone, status, is_verified, created_at 
+         FROM users 
+         WHERE role = 'customer' AND deleted_at IS NULL
+         ORDER BY created_at DESC`
+    );
+    return rows;
+};
+
+// Lấy danh sách tất cả booking
+const getAllBookings = async () => {
+    const [rows] = await db.execute(
+        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at,
+                u.full_name as customer_name, u.phone as customer_phone,
+                c.name as company_name,
+                r.from_city, r.to_city,
+                (SELECT COUNT(*) FROM booking_seats bs WHERE bs.booking_id = b.id) as seat_count
+         FROM bookings b
+         JOIN users u ON u.id = b.user_id
+         JOIN trips t ON t.id = b.trip_id
+         JOIN companies c ON c.id = t.company_id
+         JOIN routes r ON r.id = t.route_id
+         WHERE b.deleted_at IS NULL
+         ORDER BY b.created_at DESC`
+    );
+    return rows;
+};
+
+// Lấy danh sách giao dịch (Payments) cho doanh thu
+const getAllPayments = async () => {
+    const [rows] = await db.execute(
+        `SELECT p.id, p.transaction_id, p.amount, p.payment_method, p.status, p.created_at,
+                b.booking_code,
+                c.name as company_name
+         FROM payments p
+         JOIN bookings b ON b.id = p.booking_id
+         JOIN trips t ON t.id = b.trip_id
+         JOIN companies c ON c.id = t.company_id
+         ORDER BY p.created_at DESC`
+    );
+    return rows;
+};
+
 module.exports = {
     getAllCompanies, approveCompany, blockCompany,
-    setCommission, getAllRoutes, createRoute, getDashboard
+    setCommission, getAllRoutes, createRoute, getDashboard,
+    getAllUsers, getAllBookings, getAllPayments
 };

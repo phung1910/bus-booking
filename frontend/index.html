@@ -280,6 +280,13 @@
         // Đặt ngày mặc định là hôm nay
         document.getElementById('travel-date').value = new Date().toISOString().split('T')[0];
 
+        // Redirect theo role
+        if (isLoggedIn()) {
+            const role = getRole();
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'operator') window.location.href = 'operator.html';
+        }
+
         // Render navbar
         renderNavbar('home');
 

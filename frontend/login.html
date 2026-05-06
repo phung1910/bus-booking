@@ -75,7 +75,12 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        if (isLoggedIn()) window.location.href = 'index.html';
+        if (isLoggedIn()) {
+            const role = getRole();
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'operator') window.location.href = 'operator.html';
+            else window.location.href = 'index.html';
+        }
 
         async function doLogin() {
             const email = document.getElementById('email').value.trim();

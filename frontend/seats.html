@@ -215,6 +215,12 @@
         let countdownTimer = null;
         let currentBookingId = null;
 
+        if (isLoggedIn()) {
+            const role = getRole();
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'operator') window.location.href = 'operator.html';
+        }
+
         renderNavbar();
 
         // ── Load sơ đồ ghế ──

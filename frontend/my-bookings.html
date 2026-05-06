@@ -44,7 +44,15 @@
     <script>
         let allBookings = [];
 
-        if (!isLoggedIn()) window.location.href = 'login.html';
+        if (!isLoggedIn()) {
+            window.location.href = 'login.html';
+        } else if (getRole() !== 'customer') {
+            const role = getRole();
+            if (role === 'admin') window.location.href = 'admin.html';
+            else if (role === 'operator') window.location.href = 'operator.html';
+            else window.location.href = 'index.html';
+        }
+        
         renderNavbar('bookings');
 
         async function loadBookings() {

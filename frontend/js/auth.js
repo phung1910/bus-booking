@@ -30,23 +30,23 @@ function renderNavbar(activePage = '') {
     const loggedIn = isLoggedIn();
 
     const navLinks = loggedIn ? `
-    <a class="nav-link ${activePage === 'home' ? 'active' : ''}" href="/index.html">Trang chủ</a>
-    ${user?.role === 'operator' ? `<a class="nav-link ${activePage === 'operator' ? 'active' : ''}" href="/operator.html">Quản lý nhà xe</a>` : ''}
-    ${user?.role === 'admin' ? `<a class="nav-link ${activePage === 'admin' ? 'active' : ''}" href="/admin.html">Quản trị</a>` : ''}
-    ${user?.role === 'customer' || user?.role === 'operator' ? `<a class="nav-link ${activePage === 'bookings' ? 'active' : ''}" href="/my-bookings.html">Vé của tôi</a>` : ''}
+    ${user?.role === 'customer' ? `<a class="nav-link ${activePage === 'home' ? 'active' : ''}" href="index.html">Trang chủ</a>` : ''}
+    ${user?.role === 'operator' ? `<a class="nav-link ${activePage === 'operator' ? 'active' : ''}" href="operator.html">Quản lý nhà xe</a>` : ''}
+    ${user?.role === 'admin' ? `<a class="nav-link ${activePage === 'admin' ? 'active' : ''}" href="admin.html">Quản trị</a>` : ''}
+    ${user?.role === 'customer' ? `<a class="nav-link ${activePage === 'bookings' ? 'active' : ''}" href="my-bookings.html">Vé của tôi</a>` : ''}
     <div style="width:1px;height:24px;background:rgba(255,255,255,.15)"></div>
     <span class="nav-link" style="color:rgba(255,255,255,.75)">${user?.full_name}</span>
     <button class="btn-nav" onclick="logout()" style="background:rgba(255,255,255,.1);color:#fff">Đăng xuất</button>
   ` : `
-    <a class="nav-link ${activePage === 'home' ? 'active' : ''}" href="/index.html">Trang chủ</a>
-    <a class="nav-link" href="/login.html">Đăng nhập</a>
-    <a href="/register.html"><button class="btn-nav">Đăng ký</button></a>
+    <a class="nav-link ${activePage === 'home' ? 'active' : ''}" href="index.html">Trang chủ</a>
+    <a class="nav-link" href="login.html">Đăng nhập</a>
+    <a href="register.html"><button class="btn-nav">Đăng ký</button></a>
   `;
 
     const navbar = document.getElementById('navbar');
     if (navbar) {
         navbar.innerHTML = `
-      <a class="navbar-brand" href="/index.html">
+      <a class="navbar-brand" href="${user?.role === 'admin' ? 'admin.html' : user?.role === 'operator' ? 'operator.html' : 'index.html'}">
         <span class="dot"></span> BusGo
       </a>
       <div class="navbar-links">${navLinks}</div>
