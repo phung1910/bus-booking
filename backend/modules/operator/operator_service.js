@@ -139,9 +139,15 @@ const getMyTrips = async (userId, { status, from_date, to_date, q } = {}) => {
     if (to_date) { sql += ' AND DATE(t.departure_time) <= ?'; params.push(to_date); }
     
     if (q) {
-        sql += ' AND (t.id LIKE ? OR r.from_city LIKE ? OR r.to_city LIKE ? OR t.vehicle_type LIKE ?)';
+        sql += ` AND (t.id LIKE ? 
+                 OR r.from_city LIKE ? 
+                 OR r.to_city LIKE ? 
+                 OR t.vehicle_type LIKE ?
+                 OR CONCAT(r.from_city, ' - ', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, '-', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, ' ', r.to_city) LIKE ?)`;
         const search = '%' + q + '%';
-        params.push(search, search, search, search);
+        params.push(search, search, search, search, search, search, search);
     }
 
     sql += ' GROUP BY t.id ORDER BY t.departure_time DESC';
@@ -224,9 +230,15 @@ const getMyBookings = async (userId, q = null) => {
     const params = [companies[0].id];
     
     if (q) {
-        sql += ' AND (b.booking_code LIKE ? OR u.full_name LIKE ? OR u.phone LIKE ? OR u.email LIKE ?)';
+        sql += ` AND (b.booking_code LIKE ? 
+                 OR u.full_name LIKE ? 
+                 OR u.phone LIKE ? 
+                 OR u.email LIKE ?
+                 OR CONCAT(r.from_city, ' - ', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, '-', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, ' ', r.to_city) LIKE ?)`;
         const search = '%' + q + '%';
-        params.push(search, search, search, search);
+        params.push(search, search, search, search, search, search, search);
     }
 
     sql += ' GROUP BY b.id ORDER BY b.created_at DESC';

@@ -164,9 +164,16 @@ const getAllBookings = async (q = null) => {
          
     const params = [];
     if (q) {
-        sql += ' AND (b.booking_code LIKE ? OR u.full_name LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR c.name LIKE ?)';
+        sql += ` AND (b.booking_code LIKE ? 
+                 OR u.full_name LIKE ? 
+                 OR u.phone LIKE ? 
+                 OR u.email LIKE ? 
+                 OR c.name LIKE ?
+                 OR CONCAT(r.from_city, ' - ', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, '-', r.to_city) LIKE ?
+                 OR CONCAT(r.from_city, ' ', r.to_city) LIKE ?)`;
         const search = '%' + q + '%';
-        params.push(search, search, search, search, search);
+        params.push(search, search, search, search, search, search, search, search);
     }
     
     sql += ' ORDER BY b.created_at DESC';
