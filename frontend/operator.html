@@ -65,6 +65,9 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
                     <h2 style="margin-bottom:0">Danh sách chuyến xe</h2>
                     <div style="display:flex;gap:8px">
+                        <select class="form-control" id="filter-route" onchange="loadTrips()" style="width:auto">
+                            <option value="">Tất cả tuyến</option>
+                        </select>
                         <input type="text" class="form-control" id="search-trips" placeholder="Tìm ID, tuyến, loại xe..." onkeyup="if(event.key === 'Enter') loadTrips()" />
                         <button class="btn btn-primary" onclick="loadTrips()">Tìm</button>
                         <button class="btn btn-amber" onclick="toggleCreateTrip()">➕ Tạo chuyến mới</button>
@@ -264,8 +267,14 @@
         }
 
         async function loadTrips() {
-            const q = document.getElementById('search-trips')?.value || '';
+            const textQ = document.getElementById('search-trips')?.value || '';
+            const routeQ = document.getElementById('filter-route')?.value || '';
+            
+            let q = textQ;
+            if (!q && routeQ) q = routeQ; // Ưu tiên text search, nếu rỗng thì lấy từ dropdown
+            
             const url = '/operator/trips' + (q ? '?q=' + encodeURIComponent(q) : '');
+
             const res = await GET(url, true);
             if (!res?.success) return;
 
@@ -387,7 +396,17 @@
                    </table>`;
         }
 
+        async function loadFilterRoutes() {
+            const res = await GET('/operator/routes', true);
+            if (res?.success) {
+                const select = document.getElementById('filter-route');
+                const options = res.data.map(r => `<option value="${r.from_city} - ${r.to_city}">${r.from_city} → ${r.to_city}</option>`).join('');
+                select.innerHTML = '<option value="">Tất cả tuyến</option>' + options;
+            }
+        }
+
         loadOverview();
+        loadFilterRoutes();
     </script>
 </body>
 
