@@ -413,7 +413,7 @@
                 }
                 
                 // Validate Số điện thoại VN (10 số)
-                const phoneRegex = /^(0|\\+84)[35789][0-9]{8}$/;
+                const phoneRegex = /^(0|\+84)[35789][0-9]{8}$/;
                 if (!phoneRegex.test(p.phone)) {
                     showToast(`Số điện thoại ghế ${selectedSeats[i].code} không hợp lệ.`, 'error');
                     return;
@@ -427,7 +427,7 @@
                 }
                 
                 // Validate Email
-                const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(p.email)) {
                     showToast(`Email ghế ${selectedSeats[i].code} không hợp lệ.`, 'error');
                     return;
