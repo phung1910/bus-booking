@@ -12,5 +12,7 @@ router.post('/trips', controller.createTrip);
 router.get('/trips', controller.getMyTrips);
 router.get('/trips/:id/seats', controller.getTripSeats);
 router.get('/revenue', controller.getRevenueReport);
+router.get('/bookings', controller.getMyBookings);
+router.get('/routes', controller.getMyRoutes);
 
 module.exports = router;

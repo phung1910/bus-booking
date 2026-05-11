@@ -125,7 +125,7 @@
             <div class="timer-bar" id="timer-bar" style="display:none;margin-bottom:1rem">
                 <span>⏱</span>
                 <div>
-                    <div style="font-size:12px;font-weight:500">Thời gian giữ ghế</div>
+                    <div style="font-size:12px;font-weight:500">Thời gian thanh toán</div>
                     <div class="timer-count" id="countdown">10:00</div>
                 </div>
             </div>
@@ -168,7 +168,7 @@
                     <!-- Bước 1: Lock ghế -->
                     <button class="btn btn-primary btn-block" id="btn-lock" onclick="lockSeats()"
                         style="margin-top:1rem" disabled>
-                        Giữ ghế (10 phút)
+                        Thanh toán
                     </button>
                 </div>
             </div>
@@ -243,7 +243,7 @@
       <div class="summary-row"><span>Nhà xe</span><strong>${tripData.company_name}</strong></div>
       <div class="summary-row"><span>Tuyến</span><strong>${tripData.from_city} → ${tripData.to_city}</strong></div>
       <div class="summary-row"><span>Khởi hành</span><strong>${formatDateTime(tripData.departure_time)}</strong></div>
-      <div class="summary-row"><span>Dự kiến đến</span><strong>${formatDateTime(tripData.arrival_time)}</strong></div>
+      <div class="summary-row"><span>Dự kiến đến</span><strong>${tripData.arrival_time ? formatDateTime(tripData.arrival_time) : 'Chưa cập nhật'}</strong></div>
       <div class="summary-row"><span>Loại xe</span><strong>${{ seat: 'Ghế ngồi', sleeper: 'Giường nằm', limousine: 'Limousine' }[tripData.vehicle_type]}</strong></div>
     `;
 
@@ -361,7 +361,7 @@
                 return;
             }
 
-            showToast('Đã giữ ghế thành công! Hoàn tất trong 10 phút.', 'success');
+            showToast('Đã khóa ghế! Vui lòng hoàn tất thông tin và thanh toán trong 10 phút.', 'success');
             startCountdown(600);
 
             // Hiện form hành khách
@@ -411,6 +411,27 @@
                     showToast(`Vui lòng điền đầy đủ thông tin hành khách ghế ${selectedSeats[i].code}.`, 'error');
                     return;
                 }
+                
+                // Validate Số điện thoại VN (10 số)
+                const phoneRegex = /^(0|\\+84)[35789][0-9]{8}$/;
+                if (!phoneRegex.test(p.phone)) {
+                    showToast(`Số điện thoại ghế ${selectedSeats[i].code} không hợp lệ.`, 'error');
+                    return;
+                }
+                
+                // Validate CCCD/Hộ chiếu (9-12 ký tự chữ số)
+                const idCardRegex = /^[a-zA-Z0-9]{9,12}$/;
+                if (!idCardRegex.test(p.id_card)) {
+                    showToast(`CCCD/Hộ chiếu ghế ${selectedSeats[i].code} không hợp lệ (9-12 ký tự).`, 'error');
+                    return;
+                }
+                
+                // Validate Email
+                const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+                if (!emailRegex.test(p.email)) {
+                    showToast(`Email ghế ${selectedSeats[i].code} không hợp lệ.`, 'error');
+                    return;
+                }
             }
 
             const res = await POST('/booking/create', {
@@ -432,7 +453,7 @@
       <div class="summary-row"><span>Mã booking</span><strong>${res.data.bookingCode}</strong></div>
       <div class="summary-row"><span>Số ghế</span><strong>${selectedSeats.length} ghế</strong></div>
       <div class="summary-row total"><span>Tổng thanh toán</span><strong style="color:var(--amber)">${formatPrice(res.data.totalAmount)}</strong></div>
-      <div class="alert alert-warning" style="margin-top:1rem">⏱ Vui lòng thanh toán trước khi hết giờ giữ ghế!</div>
+      <div class="alert alert-warning" style="margin-top:1rem">⏱ Vui lòng hoàn tất thanh toán trước khi hết thời gian!</div>
     `;
             document.getElementById('payment-modal').style.display = 'flex';
         }
@@ -476,7 +497,7 @@
                 if (remaining <= 0) {
                     clearInterval(countdownTimer);
                     disp.textContent = '00:00';
-                    showToast('Hết thời gian giữ ghế! Vui lòng chọn lại.', 'error');
+                    showToast('Hết thời gian thanh toán! Vui lòng chọn lại.', 'error');
                     setTimeout(() => location.reload(), 2000);
                 }
             }, 1000);

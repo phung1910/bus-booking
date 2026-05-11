@@ -1,5 +1,5 @@
 // ── Cấu hình API gốc ──
-const API_BASE = '/api';
+const API_BASE = (window.location.port === '8080' || window.location.port === '5500' || window.location.port === '5501') ? 'http://localhost:3000/api' : '/api';
 
 // ── Lấy token từ localStorage ──
 const getToken = () => localStorage.getItem('token');

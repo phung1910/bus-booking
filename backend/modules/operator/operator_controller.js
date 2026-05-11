@@ -73,7 +73,29 @@ const getRevenueReport = async (req, res) => {
     }
 };
 
+const getMyBookings = async (req, res) => {
+    try {
+        const data = await operatorService.getMyBookings(req.user.id);
+        return sendSuccess(res, data, 'Lấy danh sách đặt vé thành công.');
+    } catch (e) {
+        if (e.statusCode) return sendError(res, e.message, e.statusCode);
+        console.error('[Operator] getMyBookings:', e);
+        return sendError(res, 'Lỗi server.', 500);
+    }
+};
+
+const getMyRoutes = async (req, res) => {
+    try {
+        const data = await operatorService.getMyRoutes(req.user.id);
+        return sendSuccess(res, data, 'Lấy danh sách tuyến đường thành công.');
+    } catch (e) {
+        if (e.statusCode) return sendError(res, e.message, e.statusCode);
+        console.error('[Operator] getMyRoutes:', e);
+        return sendError(res, 'Lỗi server.', 500);
+    }
+};
+
 module.exports = {
     registerCompany, getMyCompany,
-    createTrip, getMyTrips, getTripSeats, getRevenueReport
+    createTrip, getMyTrips, getTripSeats, getRevenueReport, getMyBookings, getMyRoutes
 };

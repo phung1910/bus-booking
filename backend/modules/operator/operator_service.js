@@ -192,8 +192,63 @@ const getRevenueReport = async (userId, { from_date, to_date } = {}) => {
     return { ...summary, commission_rate };
 };
 
+// Lấy danh sách booking + thông tin khách hàng của nhà xe
+const getMyBookings = async (userId) => {
+    const [companies] = await db.execute(
+        'SELECT id FROM companies WHERE user_id = ? AND deleted_at IS NULL',
+        [userId]
+    );
+    if (companies.length === 0)
+        throw { statusCode: 404, message: 'Bạn chưa đăng ký nhà xe.' };
+
+    const [rows] = await db.execute(
+        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at,
+                u.full_name AS customer_name, u.email AS customer_email, u.phone AS customer_phone,
+                r.from_city, r.to_city,
+                t.departure_time, t.vehicle_type,
+                GROUP_CONCAT(s.seat_code ORDER BY s.seat_code SEPARATOR ', ') AS seats
+         FROM bookings b
+         JOIN users u ON u.id = b.user_id
+         JOIN trips t ON t.id = b.trip_id
+         JOIN companies c ON c.id = t.company_id
+         JOIN routes r ON r.id = t.route_id
+         LEFT JOIN booking_seats bs ON bs.booking_id = b.id
+         LEFT JOIN seats s ON s.id = bs.seat_id
+         WHERE c.id = ? AND b.deleted_at IS NULL
+         GROUP BY b.id
+         ORDER BY b.created_at DESC`,
+        [companies[0].id]
+    );
+    return rows;
+};
+
+// Lấy danh sách tuyến đường kèm số chuyến của nhà xe
+const getMyRoutes = async (userId) => {
+    const [companies] = await db.execute(
+        'SELECT id FROM companies WHERE user_id = ? AND deleted_at IS NULL',
+        [userId]
+    );
+    if (companies.length === 0)
+        throw { statusCode: 404, message: 'Bạn chưa đăng ký nhà xe.' };
+
+    const [rows] = await db.execute(
+        `SELECT r.id, r.from_city, r.to_city, r.distance_km, r.duration_min, r.status,
+                COUNT(t.id) AS total_trips,
+                SUM(CASE WHEN t.status = 'scheduled' THEN 1 ELSE 0 END) AS scheduled_trips,
+                SUM(CASE WHEN t.status = 'departed' THEN 1 ELSE 0 END) AS departed_trips,
+                SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) AS completed_trips
+         FROM routes r
+         LEFT JOIN trips t ON t.route_id = r.id AND t.company_id = ? AND t.deleted_at IS NULL
+         WHERE r.status = 'active'
+         GROUP BY r.id
+         ORDER BY total_trips DESC, r.from_city`,
+        [companies[0].id]
+    );
+    return rows;
+};
+
 module.exports = {
     registerCompany, getMyCompany,
     createTrip, getMyTrips, getTripSeats,
-    getRevenueReport
+    getRevenueReport, getMyBookings, getMyRoutes
 };

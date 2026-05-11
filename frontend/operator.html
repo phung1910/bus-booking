@@ -25,6 +25,9 @@
             <div class="sidebar-item" onclick="showPanel('create-trip')">
                 <span class="icon">➕</span> Tạo chuyến mới
             </div>
+            <div class="sidebar-item" onclick="showPanel('bookings')">
+                <span class="icon">📋</span> Đơn đặt vé
+            </div>
             <div class="sidebar-item" onclick="showPanel('revenue')">
                 <span class="icon">💰</span> Doanh thu
             </div>
@@ -146,6 +149,16 @@
                 </div>
             </div>
 
+            <!-- PANEL: Đơn đặt vé -->
+            <div id="panel-bookings" style="display:none">
+                <h2 style="margin-bottom:1.5rem">Đơn đặt vé của khách hàng</h2>
+                <div class="card">
+                    <div class="card-body" id="operator-bookings-table">
+                        <div style="text-align:center;padding:2rem"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -170,6 +183,7 @@
             if (name === 'overview') loadOverview();
             if (name === 'trips') loadTrips();
             if (name === 'create-trip') loadRoutes();
+            if (name === 'bookings') loadOperatorBookings();
             if (name === 'revenue') { }
             if (name === 'company') loadCompany();
         }
@@ -313,6 +327,35 @@
         <div class="summary-row"><span>Đánh giá</span><strong>${c.avg_rating} ⭐ (${c.total_ratings} đánh giá)</strong></div>
       `;
             }
+        }
+
+        async function loadOperatorBookings() {
+            const res = await GET('/operator/bookings', true);
+            if (!res?.success) return;
+            document.getElementById('operator-bookings-table').innerHTML = res.data.length === 0
+                ? '<div class="empty-state"><div class="icon">📋</div><h3>Chưa có đơn đặt vé nào</h3></div>'
+                : `<table class="table">
+                    <thead><tr>
+                        <th>Mã vé</th><th>Khách hàng</th><th>Liên hệ</th>
+                        <th>Tuyến</th><th>Khởi hành</th><th>Ghế</th>
+                        <th>Tổng tiền</th><th>Trạng thái</th>
+                    </tr></thead>
+                    <tbody>${res.data.map(b => `
+                        <tr>
+                            <td><strong>${b.booking_code}</strong></td>
+                            <td><strong>${b.customer_name}</strong></td>
+                            <td>
+                                ${b.customer_phone || ''}<br/>
+                                <span style="font-size:12px;color:var(--gray-400)">${b.customer_email}</span>
+                            </td>
+                            <td>${b.from_city} → ${b.to_city}</td>
+                            <td>${formatDateTime(b.departure_time)}</td>
+                            <td>${b.seats || '—'}</td>
+                            <td>${formatPrice(b.total_amount)}</td>
+                            <td>${statusBadge(b.status)}</td>
+                        </tr>
+                    `).join('')}</tbody>
+                   </table>`;
         }
 
         loadOverview();
