@@ -48,12 +48,14 @@
                     style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
                     <h2>Quản lý nhà xe</h2>
                     <div style="display:flex;gap:8px">
+                        <input type="text" class="form-control" id="search-companies" placeholder="Tìm tên nhà xe, sdt..." onkeyup="if(event.key === 'Enter') loadCompanies()" />
                         <select class="form-control" id="company-filter" style="width:auto" onchange="loadCompanies()">
                             <option value="">Tất cả</option>
                             <option value="pending">Chờ duyệt</option>
                             <option value="approved">Đã duyệt</option>
                             <option value="blocked">Đã khóa</option>
                         </select>
+                        <button class="btn btn-primary" onclick="loadCompanies()">Tìm</button>
                     </div>
                 </div>
 
@@ -108,7 +110,13 @@
 
             <!-- Khách hàng -->
             <div id="panel-users" style="display:none">
-                <h2 style="margin-bottom:1.5rem">Quản lý Khách hàng</h2>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                    <h2>Quản lý Khách hàng</h2>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" class="form-control" id="search-users" placeholder="Tìm tên, email, sdt..." onkeyup="if(event.key === 'Enter') loadUsers()" />
+                        <button class="btn btn-primary" onclick="loadUsers()">Tìm</button>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-body" id="users-table">
                         <div style="text-align:center;padding:1rem"><div class="spinner"></div></div>
@@ -118,7 +126,13 @@
 
             <!-- Tổng booking -->
             <div id="panel-bookings" style="display:none">
-                <h2 style="margin-bottom:1.5rem">Tất cả Booking</h2>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                    <h2>Tất cả Booking</h2>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" class="form-control" id="search-bookings" placeholder="Tìm mã vé, tên, sdt..." onkeyup="if(event.key === 'Enter') loadAdminBookings()" />
+                        <button class="btn btn-primary" onclick="loadAdminBookings()">Tìm</button>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-body" id="bookings-table">
                         <div style="text-align:center;padding:1rem"><div class="spinner"></div></div>
@@ -196,7 +210,10 @@
 
         async function loadCompanies() {
             const status = document.getElementById('company-filter')?.value || '';
-            const url = '/admin/companies' + (status ? '?status=' + status : '');
+            const q = document.getElementById('search-companies')?.value || '';
+            let url = '/admin/companies?';
+            if (status) url += 'status=' + status + '&';
+            if (q) url += 'q=' + encodeURIComponent(q);
             const res = await GET(url, true);
             if (!res?.success) return;
 
@@ -282,16 +299,18 @@
         }
 
         async function loadUsers() {
-            const res = await GET('/admin/users', true);
+            const q = document.getElementById('search-users')?.value || '';
+            const res = await GET('/admin/users' + (q ? '?q=' + encodeURIComponent(q) : ''), true);
             if (!res?.success) return;
             document.getElementById('users-table').innerHTML = res.data.length === 0
                 ? '<div class="empty-state"><h3>Không có khách hàng</h3></div>'
                 : `<table class="table">
-                    <thead><tr><th>Tên</th><th>Email / SĐT</th><th>Trạng thái</th><th>Tham gia</th></tr></thead>
+                    <thead><tr><th>Tên</th><th>Email</th><th>SĐT</th><th>Trạng thái</th><th>Tham gia</th></tr></thead>
                     <tbody>${res.data.map(u => `
                         <tr>
                             <td><strong>${u.full_name}</strong></td>
-                            <td>${u.email}<br/><span style="font-size:12px;color:var(--gray-400)">${u.phone || ''}</span></td>
+                            <td>${u.email}</td>
+                            <td>${u.phone || '—'}</td>
                             <td>${statusBadge(u.status)}</td>
                             <td>${formatDate(u.created_at)}</td>
                         </tr>
@@ -300,7 +319,8 @@
         }
 
         async function loadAdminBookings() {
-            const res = await GET('/admin/bookings', true);
+            const q = document.getElementById('search-bookings')?.value || '';
+            const res = await GET('/admin/bookings' + (q ? '?q=' + encodeURIComponent(q) : ''), true);
             if (!res?.success) return;
 
             const now = new Date();

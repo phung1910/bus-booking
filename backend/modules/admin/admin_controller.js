@@ -3,7 +3,7 @@ const { sendSuccess, sendError } = require('../../utils/response');
 
 const getAllCompanies = async (req, res) => {
     try {
-        const data = await adminService.getAllCompanies(req.query.status);
+        const data = await adminService.getAllCompanies(req.query.status, req.query.q);
         return sendSuccess(res, data, 'Lấy danh sách nhà xe thành công.');
     } catch (e) {
         if (e.statusCode) return sendError(res, e.message, e.statusCode);
@@ -84,7 +84,7 @@ const getDashboard = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
     try {
-        const data = await adminService.getAllUsers();
+        const data = await adminService.getAllUsers(req.query.q);
         return sendSuccess(res, data, 'Lấy danh sách khách hàng thành công.');
     } catch (e) {
         console.error('[Admin] getAllUsers:', e);
@@ -94,7 +94,7 @@ const getAllUsers = async (req, res) => {
 
 const getAllBookings = async (req, res) => {
     try {
-        const data = await adminService.getAllBookings();
+        const data = await adminService.getAllBookings(req.query.q);
         return sendSuccess(res, data, 'Lấy danh sách booking thành công.');
     } catch (e) {
         console.error('[Admin] getAllBookings:', e);

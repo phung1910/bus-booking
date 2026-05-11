@@ -1,7 +1,7 @@
 const db = require('../../config/db');
 
-// Lấy danh sách nhà xe, có thể lọc theo status
-const getAllCompanies = async (status = null) => {
+// Lấy danh sách nhà xe, có thể lọc theo status và tìm kiếm
+const getAllCompanies = async (status = null, q = null) => {
     let sql = `
     SELECT
       c.id, c.name, c.phone, c.address,
@@ -18,6 +18,12 @@ const getAllCompanies = async (status = null) => {
     if (status) {
         sql += ' AND c.status = ?';
         params.push(status);
+    }
+    
+    if (q) {
+        sql += ' AND (c.name LIKE ? OR c.phone LIKE ? OR u.full_name LIKE ? OR u.email LIKE ?)';
+        const search = '%' + q + '%';
+        params.push(search, search, search, search);
     }
 
     sql += ' ORDER BY c.created_at DESC';
@@ -123,22 +129,29 @@ const getDashboard = async () => {
 };
 
 // Lấy danh sách khách hàng
-const getAllUsers = async () => {
-    const [rows] = await db.execute(
-        `SELECT id, full_name, email, phone, status, is_verified, created_at 
-         FROM users 
-         WHERE role = 'customer' AND deleted_at IS NULL
-         ORDER BY created_at DESC`
-    );
+const getAllUsers = async (q = null) => {
+    let sql = `SELECT id, full_name, email, phone, status, is_verified, created_at 
+               FROM users 
+               WHERE role = 'customer' AND deleted_at IS NULL`;
+    const params = [];
+    
+    if (q) {
+        sql += ' AND (full_name LIKE ? OR email LIKE ? OR phone LIKE ?)';
+        const search = '%' + q + '%';
+        params.push(search, search, search);
+    }
+    
+    sql += ' ORDER BY created_at DESC';
+
+    const [rows] = await db.execute(sql, params);
     return rows;
 };
 
 // Lấy danh sách tất cả booking
-const getAllBookings = async () => {
-    const [rows] = await db.execute(
-        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at, b.expires_at,
+const getAllBookings = async (q = null) => {
+    let sql = `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at, b.expires_at,
                 t.departure_time,
-                u.full_name as customer_name, u.phone as customer_phone,
+                u.full_name as customer_name, u.phone as customer_phone, u.email as customer_email,
                 c.name as company_name,
                 r.from_city, r.to_city,
                 (SELECT COUNT(*) FROM booking_seats bs WHERE bs.booking_id = b.id) as seat_count
@@ -147,9 +160,18 @@ const getAllBookings = async () => {
          JOIN trips t ON t.id = b.trip_id
          JOIN companies c ON c.id = t.company_id
          JOIN routes r ON r.id = t.route_id
-         WHERE b.deleted_at IS NULL
-         ORDER BY b.created_at DESC`
-    );
+         WHERE b.deleted_at IS NULL`;
+         
+    const params = [];
+    if (q) {
+        sql += ' AND (b.booking_code LIKE ? OR u.full_name LIKE ? OR u.phone LIKE ? OR u.email LIKE ? OR c.name LIKE ?)';
+        const search = '%' + q + '%';
+        params.push(search, search, search, search, search);
+    }
+    
+    sql += ' ORDER BY b.created_at DESC';
+
+    const [rows] = await db.execute(sql, params);
     return rows;
 };
 
