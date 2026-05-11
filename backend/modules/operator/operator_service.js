@@ -129,7 +129,7 @@ const getMyTrips = async (userId, { status, from_date, to_date } = {}) => {
       COUNT(b.id) AS total_bookings
     FROM trips t
     JOIN routes r ON r.id = t.route_id
-    LEFT JOIN bookings b ON b.trip_id = t.id AND b.status = 'paid'
+    LEFT JOIN bookings b ON b.trip_id = t.id AND b.status IN ('paid', 'completed')
     WHERE t.company_id = ? AND t.deleted_at IS NULL
   `;
     const params = [companies[0].id];
@@ -181,7 +181,7 @@ const getRevenueReport = async (userId, { from_date, to_date } = {}) => {
       COALESCE(SUM(b.total_amount * (1 - ? / 100)), 0)   AS net_revenue
     FROM bookings b
     JOIN trips t ON t.id = b.trip_id
-    WHERE t.company_id = ? AND b.status = 'paid'
+    WHERE t.company_id = ? AND b.status IN ('paid', 'completed')
   `;
     const params = [commission_rate, commission_rate, companyId];
 

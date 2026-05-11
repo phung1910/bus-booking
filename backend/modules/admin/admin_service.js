@@ -108,10 +108,10 @@ const getDashboard = async () => {
         "SELECT COUNT(*) AS totalCompanies FROM companies WHERE deleted_at IS NULL AND status = 'approved'"
     );
     const [[{ totalBookings }]] = await db.execute(
-        "SELECT COUNT(*) AS totalBookings FROM bookings WHERE status = 'paid'"
+        "SELECT COUNT(*) AS totalBookings FROM bookings WHERE status IN ('paid', 'completed')"
     );
     const [[{ totalRevenue }]] = await db.execute(
-        "SELECT COALESCE(SUM(total_amount), 0) AS totalRevenue FROM bookings WHERE status = 'paid'"
+        "SELECT COALESCE(SUM(total_amount), 0) AS totalRevenue FROM bookings WHERE status IN ('paid', 'completed')"
     );
     const [[{ pendingCompanies }]] = await db.execute(
         "SELECT COUNT(*) AS pendingCompanies FROM companies WHERE status = 'pending'"
