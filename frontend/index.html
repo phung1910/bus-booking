@@ -150,24 +150,53 @@
         }
 
         /* Popular routes */
-        .route-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--white);
-            border: 1.5px solid var(--gray-200);
-            border-radius: 30px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all .2s;
+        .route-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
 
-        .route-chip:hover {
+        .route-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+
+        .route-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
             border-color: var(--navy);
-            background: var(--navy);
-            color: var(--white);
+        }
+
+        .route-card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .route-card-body {
+            padding: 16px;
+        }
+
+        .route-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 4px;
+        }
+
+        .route-card-subtitle {
+            font-size: 13px;
+            color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
     </style>
 </head>
@@ -225,24 +254,45 @@
     </section>
 
     <!-- Tuyến phổ biến -->
-    <section class="section">
+    <section class="section" style="background:var(--gray-50); padding-top:2rem">
         <div class="container">
-            <h2 style="margin-bottom:1.25rem;font-size:22px">Tuyến phổ biến</h2>
-            <div style="display:flex;flex-wrap:wrap;gap:10px">
-                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Đà Lạt')">
-                    TP. Hồ Chí Minh → Đà Lạt
+            <h2 style="margin-bottom:0.5rem;font-size:24px;color:var(--navy)">Khám phá các tuyến phổ biến</h2>
+            <p style="color:var(--gray-500);margin-bottom:1.5rem">Những điểm đến tuyệt đẹp đang chờ đón bạn</p>
+            <div class="route-grid">
+                <div class="route-card" onclick="quickSearch('TP. Hồ Chí Minh','Đà Lạt')">
+                    <img class="route-card-img" src="img/dalat.png" alt="Đà Lạt" />
+                    <div class="route-card-body">
+                        <div class="route-card-title">Sài Gòn → Đà Lạt</div>
+                        <div class="route-card-subtitle">🚌 Hơn 20 chuyến mỗi ngày</div>
+                    </div>
                 </div>
-                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Vũng Tàu')">
-                    TP. Hồ Chí Minh → Vũng Tàu
+                <div class="route-card" onclick="quickSearch('TP. Hồ Chí Minh','Vũng Tàu')">
+                    <img class="route-card-img" src="img/vungtau.png" alt="Vũng Tàu" />
+                    <div class="route-card-body">
+                        <div class="route-card-title">Sài Gòn → Vũng Tàu</div>
+                        <div class="route-card-subtitle">🚌 Hơn 50 chuyến mỗi ngày</div>
+                    </div>
                 </div>
-                <div class="route-chip" onclick="quickSearch('TP. Hồ Chí Minh','Phan Thiết')">
-                    TP. Hồ Chí Minh → Phan Thiết
+                <div class="route-card" onclick="quickSearch('TP. Hồ Chí Minh','Phan Thiết')">
+                    <img class="route-card-img" src="img/phanthiet.png" alt="Phan Thiết" />
+                    <div class="route-card-body">
+                        <div class="route-card-title">Sài Gòn → Phan Thiết</div>
+                        <div class="route-card-subtitle">🚌 Hơn 15 chuyến mỗi ngày</div>
+                    </div>
                 </div>
-                <div class="route-chip" onclick="quickSearch('Hà Nội','Hải Phòng')">
-                    Hà Nội → Hải Phòng
+                <div class="route-card" onclick="quickSearch('Hà Nội','Hải Phòng')">
+                    <img class="route-card-img" src="img/haiphong.png" alt="Hải Phòng" />
+                    <div class="route-card-body">
+                        <div class="route-card-title">Hà Nội → Hải Phòng</div>
+                        <div class="route-card-subtitle">🚌 Hơn 40 chuyến mỗi ngày</div>
+                    </div>
                 </div>
-                <div class="route-chip" onclick="quickSearch('Hà Nội','Đà Nẵng')">
-                    Hà Nội → Đà Nẵng
+                <div class="route-card" onclick="quickSearch('Hà Nội','Đà Nẵng')">
+                    <img class="route-card-img" src="img/danang.png" alt="Đà Nẵng" />
+                    <div class="route-card-body">
+                        <div class="route-card-title">Hà Nội → Đà Nẵng</div>
+                        <div class="route-card-subtitle">🚌 Hơn 10 chuyến mỗi ngày</div>
+                    </div>
                 </div>
             </div>
         </div>
