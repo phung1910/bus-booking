@@ -233,6 +233,12 @@
 
             tripData = res.data.trip;
             seatsData = res.data.seats;
+            
+            if (!tripData.arrival_time && tripData.duration_min) {
+                const depDate = new Date(tripData.departure_time);
+                depDate.setMinutes(depDate.getMinutes() + tripData.duration_min);
+                tripData.arrival_time = depDate.toISOString();
+            }
 
             // Trip summary header
             document.getElementById('trip-summary').textContent =
@@ -462,11 +468,11 @@
       <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--navy)">🧑 Thông tin hành khách</div>
       ${passengers.map((p, i) => 
         '<div style="font-size:13px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed #eee">' +
-            '<div style="display:flex; justify-content:space-between; margin-bottom:4px">' +
-                '<strong>Ghế ' + selectedSeats[i].code + '</strong>' +
-                '<span>' + p.full_name + '</span>' +
+            '<div style="margin-bottom:4px">' +
+                '<span class="badge badge-navy" style="margin-right:6px">Ghế ' + selectedSeats[i].code + '</span>' +
+                '<strong>' + p.full_name + '</strong>' +
             '</div>' +
-            '<div style="color:var(--gray-400)">SĐT: ' + p.phone + ' | CCCD: ' + p.id_card + '</div>' +
+            '<div style="color:var(--gray-500)">SĐT: ' + p.phone + ' | CCCD: ' + p.id_card + '</div>' +
         '</div>'
       ).join('')}
       

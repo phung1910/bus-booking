@@ -81,8 +81,8 @@ const getTripSeatMap = async (tripId) => {
 
     // Kiểm tra chuyến tồn tại
     const [trips] = await db.execute(
-        `SELECT t.id, t.vehicle_type, t.departure_time, t.base_price,
-            c.name AS company_name, r.from_city, r.to_city
+        `SELECT t.id, t.vehicle_type, t.departure_time, t.arrival_time, t.base_price,
+            c.name AS company_name, r.from_city, r.to_city, r.duration_min
      FROM trips t
      JOIN companies c ON c.id = t.company_id
      JOIN routes r    ON r.id = t.route_id
