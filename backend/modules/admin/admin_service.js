@@ -134,7 +134,8 @@ const getAllUsers = async () => {
 // Lấy danh sách tất cả booking
 const getAllBookings = async () => {
     const [rows] = await db.execute(
-        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at,
+        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at, b.expires_at,
+                t.departure_time,
                 u.full_name as customer_name, u.phone as customer_phone,
                 c.name as company_name,
                 r.from_city, r.to_city,

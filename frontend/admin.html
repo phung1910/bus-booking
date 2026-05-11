@@ -301,17 +301,34 @@
         async function loadAdminBookings() {
             const res = await GET('/admin/bookings', true);
             if (!res?.success) return;
-            document.getElementById('bookings-table').innerHTML = res.data.length === 0
+
+            const now = new Date();
+            const bookings = res.data.map(b => {
+                const isExpiredPayment = new Date(b.expires_at) < now;
+                const isPastDeparture = new Date(b.departure_time) < now;
+
+                if (b.status === 'pending_payment' && isExpiredPayment) {
+                    b.status = 'expired';
+                } else if (b.status === 'paid' && isPastDeparture) {
+                    b.status = 'completed';
+                } else if (b.status === 'pending_payment' && isPastDeparture) {
+                    b.status = 'expired';
+                }
+                return b;
+            });
+
+            document.getElementById('bookings-table').innerHTML = bookings.length === 0
                 ? '<div class="empty-state"><h3>Không có booking</h3></div>'
                 : `<table class="table">
-                    <thead><tr><th>Mã vé</th><th>Khách hàng</th><th>Tuyến</th><th>Nhà xe</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
-                    <tbody>${res.data.map(b => `
+                    <thead><tr><th>Mã vé</th><th>Khách hàng</th><th>Tuyến</th><th>Nhà xe</th><th>Tổng tiền</th><th>Thời gian đặt</th><th>Trạng thái</th></tr></thead>
+                    <tbody>${bookings.map(b => `
                         <tr>
                             <td><strong>${b.booking_code}</strong></td>
                             <td>${b.customer_name}<br/><span style="font-size:12px;color:var(--gray-400)">${b.customer_phone || ''}</span></td>
                             <td>${b.from_city} → ${b.to_city}</td>
                             <td>${b.company_name}</td>
                             <td>${formatPrice(b.total_amount)}</td>
+                            <td>${formatDateTime(b.created_at)}</td>
                             <td>${statusBadge(b.status)}</td>
                         </tr>
                     `).join('')}</tbody>
