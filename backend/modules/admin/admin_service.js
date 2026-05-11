@@ -28,7 +28,7 @@ const getAllCompanies = async (status = null) => {
 // Duyệt nhà xe pending → approved
 const approveCompany = async (companyId) => {
     const [rows] = await db.execute(
-        'SELECT id, status FROM companies WHERE id = ? AND deleted_at IS NULL',
+        'SELECT id, status, user_id FROM companies WHERE id = ? AND deleted_at IS NULL',
         [companyId]
     );
 
@@ -36,13 +36,14 @@ const approveCompany = async (companyId) => {
     if (rows[0].status === 'approved') throw { statusCode: 400, message: 'Nhà xe này đã được duyệt rồi.' };
 
     await db.execute('UPDATE companies SET status = ? WHERE id = ?', ['approved', companyId]);
+    await db.execute('UPDATE users SET status = ? WHERE id = ?', ['active', rows[0].user_id]);
     return { companyId, newStatus: 'approved' };
 };
 
 // Khóa nhà xe → toàn bộ chuyến bị ẩn (BR-10)
 const blockCompany = async (companyId) => {
     const [rows] = await db.execute(
-        'SELECT id, status FROM companies WHERE id = ? AND deleted_at IS NULL',
+        'SELECT id, status, user_id FROM companies WHERE id = ? AND deleted_at IS NULL',
         [companyId]
     );
 
@@ -50,6 +51,7 @@ const blockCompany = async (companyId) => {
     if (rows[0].status === 'blocked') throw { statusCode: 400, message: 'Nhà xe này đã bị khóa rồi.' };
 
     await db.execute('UPDATE companies SET status = ? WHERE id = ?', ['blocked', companyId]);
+    await db.execute('UPDATE users SET status = ? WHERE id = ?', ['banned', rows[0].user_id]);
     return { companyId, newStatus: 'blocked' };
 };
 
