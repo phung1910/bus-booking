@@ -449,9 +449,30 @@
 
             // Hiện modal xác nhận
             document.getElementById('payment-modal-body').innerHTML = `
-      <div class="alert alert-success">Booking tạo thành công!</div>
-      <div class="summary-row"><span>Mã booking</span><strong>${res.data.bookingCode}</strong></div>
-      <div class="summary-row"><span>Số ghế</span><strong>${selectedSeats.length} ghế</strong></div>
+      <div class="alert alert-success" style="margin-bottom:1rem">Booking tạo thành công!</div>
+      
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--navy)">🚌 Thông tin chuyến xe</div>
+      <div class="summary-row"><span>Tuyến</span><strong>${tripData.from_city} → ${tripData.to_city}</strong></div>
+      <div class="summary-row"><span>Khởi hành</span><strong>${formatDateTime(tripData.departure_time)}</strong></div>
+      <div class="summary-row"><span>Dự kiến đến</span><strong>${tripData.arrival_time ? formatDateTime(tripData.arrival_time) : 'Chưa cập nhật'}</strong></div>
+      <div class="summary-row"><span>Nhà xe</span><strong>${tripData.company_name}</strong></div>
+      
+      <div class="divider" style="margin:12px 0"></div>
+      
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:var(--navy)">🧑 Thông tin hành khách</div>
+      ${passengers.map((p, i) => 
+        '<div style="font-size:13px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed #eee">' +
+            '<div style="display:flex; justify-content:space-between; margin-bottom:4px">' +
+                '<strong>Ghế ' + selectedSeats[i].code + '</strong>' +
+                '<span>' + p.full_name + '</span>' +
+            '</div>' +
+            '<div style="color:var(--gray-400)">SĐT: ' + p.phone + ' | CCCD: ' + p.id_card + '</div>' +
+        '</div>'
+      ).join('')}
+      
+      <div class="divider" style="margin:12px 0"></div>
+      
+      <div class="summary-row"><span>Số lượng ghế</span><strong>${selectedSeats.length} ghế</strong></div>
       <div class="summary-row total"><span>Tổng thanh toán</span><strong style="color:var(--amber)">${formatPrice(res.data.totalAmount)}</strong></div>
       <div class="alert alert-warning" style="margin-top:1rem">⏱ Vui lòng hoàn tất thanh toán trước khi hết thời gian!</div>
     `;
