@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const { sendError } = require('../utils/response');
 require('dotenv').config();
 
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -10,13 +10,23 @@ const authenticate = (req, res, next) => {
         }
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        const db = require('../config/db');
+        const [rows] = await db.execute('SELECT status FROM users WHERE id = ?', [decoded.id]);
+        if (rows.length === 0 || rows[0].status === 'banned') {
+            return sendError(res, 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.', 401);
+        }
+
         req.user = decoded;
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
             return sendError(res, 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 401);
         }
-        return sendError(res, 'Token không hợp lệ.', 401);
+        if (error.name === 'JsonWebTokenError') {
+            return sendError(res, 'Token không hợp lệ.', 401);
+        }
+        return sendError(res, 'Lỗi hệ thống khi xác thực.', 500);
     }
 }
 
