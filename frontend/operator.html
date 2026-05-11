@@ -22,9 +22,7 @@
             <div class="sidebar-item" onclick="showPanel('trips')">
                 <span class="icon">🚌</span> Chuyến xe
             </div>
-            <div class="sidebar-item" onclick="showPanel('create-trip')">
-                <span class="icon">➕</span> Tạo chuyến mới
-            </div>
+
             <div class="sidebar-item" onclick="showPanel('bookings')">
                 <span class="icon">📋</span> Đơn đặt vé
             </div>
@@ -64,51 +62,62 @@
 
             <!-- PANEL: Danh sách chuyến -->
             <div id="panel-trips" style="display:none">
-                <h2 style="margin-bottom:1.5rem">Danh sách chuyến xe</h2>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                    <h2 style="margin-bottom:0">Danh sách chuyến xe</h2>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" class="form-control" id="search-trips" placeholder="Tìm ID, tuyến, loại xe..." onkeyup="if(event.key === 'Enter') loadTrips()" />
+                        <button class="btn btn-primary" onclick="loadTrips()">Tìm</button>
+                        <button class="btn btn-amber" onclick="toggleCreateTrip()">➕ Tạo chuyến mới</button>
+                    </div>
+                </div>
+
+                <!-- Form tạo chuyến mới -->
+                <div id="create-trip-section" style="display:none;margin-bottom:1.5rem">
+                    <div class="card" style="max-width:600px">
+                        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                            <span>Tạo chuyến xe mới</span>
+                            <span style="cursor:pointer;color:var(--gray-400);font-size:20px" onclick="toggleCreateTrip()">&times;</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Tuyến đường</label>
+                                <select class="form-control" id="new-route"></select>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Giờ khởi hành</label>
+                                    <input class="form-control" type="datetime-local" id="new-dept" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Giờ đến dự kiến</label>
+                                    <input class="form-control" type="datetime-local" id="new-arrv" />
+                                </div>
+                            </div>
+                            <div class="grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Giá vé (VNĐ)</label>
+                                    <input class="form-control" type="number" id="new-price" placeholder="250000" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Loại xe</label>
+                                    <select class="form-control" id="new-vtype">
+                                        <option value="seat">Ghế ngồi (40 ghế)</option>
+                                        <option value="sleeper">Giường nằm (60 ghế)</option>
+                                        <option value="limousine">Limousine (18 ghế)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn btn-amber btn-block" onclick="createTrip()">Xác nhận Tạo chuyến</button>
+                            <div id="create-result" style="margin-top:12px"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-body" id="trips-table">
                         <div style="text-align:center;padding:2rem">
                             <div class="spinner"></div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL: Tạo chuyến -->
-            <div id="panel-create-trip" style="display:none">
-                <h2 style="margin-bottom:1.5rem">Tạo chuyến xe mới</h2>
-                <div class="card" style="max-width:600px">
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label class="form-label">Tuyến đường</label>
-                            <select class="form-control" id="new-route"></select>
-                        </div>
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label class="form-label">Giờ khởi hành</label>
-                                <input class="form-control" type="datetime-local" id="new-dept" />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Giờ đến dự kiến</label>
-                                <input class="form-control" type="datetime-local" id="new-arrv" />
-                            </div>
-                        </div>
-                        <div class="grid-2">
-                            <div class="form-group">
-                                <label class="form-label">Giá vé (VNĐ)</label>
-                                <input class="form-control" type="number" id="new-price" placeholder="250000" />
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Loại xe</label>
-                                <select class="form-control" id="new-vtype">
-                                    <option value="seat">Ghế ngồi (40 ghế)</option>
-                                    <option value="sleeper">Giường nằm (60 ghế)</option>
-                                    <option value="limousine">Limousine (18 ghế)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button class="btn btn-amber btn-block" onclick="createTrip()">Tạo chuyến xe →</button>
-                        <div id="create-result" style="margin-top:12px"></div>
                     </div>
                 </div>
             </div>
@@ -151,7 +160,13 @@
 
             <!-- PANEL: Đơn đặt vé -->
             <div id="panel-bookings" style="display:none">
-                <h2 style="margin-bottom:1.5rem">Đơn đặt vé của khách hàng</h2>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+                    <h2 style="margin-bottom:0">Đơn đặt vé của khách hàng</h2>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" class="form-control" id="search-bookings" placeholder="Tìm mã vé, tên, sdt..." onkeyup="if(event.key === 'Enter') loadOperatorBookings()" />
+                        <button class="btn btn-primary" onclick="loadOperatorBookings()">Tìm</button>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-body" id="operator-bookings-table">
                         <div style="text-align:center;padding:2rem"><div class="spinner"></div></div>
@@ -182,10 +197,19 @@
 
             if (name === 'overview') loadOverview();
             if (name === 'trips') loadTrips();
-            if (name === 'create-trip') loadRoutes();
             if (name === 'bookings') loadOperatorBookings();
             if (name === 'revenue') { }
             if (name === 'company') loadCompany();
+        }
+
+        function toggleCreateTrip() {
+            const section = document.getElementById('create-trip-section');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                loadRoutes(); // Tải danh sách tuyến đường khi mở form
+            } else {
+                section.style.display = 'none';
+            }
         }
 
         async function loadOverview() {
@@ -240,7 +264,9 @@
         }
 
         async function loadTrips() {
-            const res = await GET('/operator/trips', true);
+            const q = document.getElementById('search-trips')?.value || '';
+            const url = '/operator/trips' + (q ? '?q=' + encodeURIComponent(q) : '');
+            const res = await GET(url, true);
             if (!res?.success) return;
 
             document.getElementById('trips-table').innerHTML = res.data.length === 0
@@ -285,6 +311,8 @@
             if (res?.success) {
                 resultEl.innerHTML = `<div class="alert alert-success">Tạo thành công! Đã sinh ${res.data.seatsGenerated} ghế.</div>`;
                 showToast('Tạo chuyến thành công!', 'success');
+                loadTrips(); // Tải lại danh sách chuyến
+                setTimeout(() => toggleCreateTrip(), 1500); // Ẩn form sau 1.5s
             } else {
                 resultEl.innerHTML = `<div class="alert alert-error">${res?.message}</div>`;
             }
@@ -330,7 +358,8 @@
         }
 
         async function loadOperatorBookings() {
-            const res = await GET('/operator/bookings', true);
+            const q = document.getElementById('search-bookings')?.value || '';
+            const res = await GET('/operator/bookings' + (q ? '?q=' + encodeURIComponent(q) : ''), true);
             if (!res?.success) return;
             document.getElementById('operator-bookings-table').innerHTML = res.data.length === 0
                 ? '<div class="empty-state"><div class="icon">📋</div><h3>Chưa có đơn đặt vé nào</h3></div>'

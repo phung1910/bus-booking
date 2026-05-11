@@ -112,7 +112,7 @@ const createTrip = async (userId, { route_id, departure_time, arrival_time, base
 };
 
 // Danh sách chuyến xe của operator (có filter)
-const getMyTrips = async (userId, { status, from_date, to_date } = {}) => {
+const getMyTrips = async (userId, { status, from_date, to_date, q } = {}) => {
     const [companies] = await db.execute(
         'SELECT id FROM companies WHERE user_id = ? AND deleted_at IS NULL',
         [userId]
@@ -137,6 +137,12 @@ const getMyTrips = async (userId, { status, from_date, to_date } = {}) => {
     if (status) { sql += ' AND t.status = ?'; params.push(status); }
     if (from_date) { sql += ' AND DATE(t.departure_time) >= ?'; params.push(from_date); }
     if (to_date) { sql += ' AND DATE(t.departure_time) <= ?'; params.push(to_date); }
+    
+    if (q) {
+        sql += ' AND (t.id LIKE ? OR r.from_city LIKE ? OR r.to_city LIKE ? OR t.vehicle_type LIKE ?)';
+        const search = '%' + q + '%';
+        params.push(search, search, search, search);
+    }
 
     sql += ' GROUP BY t.id ORDER BY t.departure_time DESC';
 
@@ -193,7 +199,7 @@ const getRevenueReport = async (userId, { from_date, to_date } = {}) => {
 };
 
 // Lấy danh sách booking + thông tin khách hàng của nhà xe
-const getMyBookings = async (userId) => {
+const getMyBookings = async (userId, q = null) => {
     const [companies] = await db.execute(
         'SELECT id FROM companies WHERE user_id = ? AND deleted_at IS NULL',
         [userId]
@@ -201,8 +207,7 @@ const getMyBookings = async (userId) => {
     if (companies.length === 0)
         throw { statusCode: 404, message: 'Bạn chưa đăng ký nhà xe.' };
 
-    const [rows] = await db.execute(
-        `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at,
+    let sql = `SELECT b.id, b.booking_code, b.total_amount, b.status, b.created_at,
                 u.full_name AS customer_name, u.email AS customer_email, u.phone AS customer_phone,
                 r.from_city, r.to_city,
                 t.departure_time, t.vehicle_type,
@@ -214,11 +219,19 @@ const getMyBookings = async (userId) => {
          JOIN routes r ON r.id = t.route_id
          LEFT JOIN booking_seats bs ON bs.booking_id = b.id
          LEFT JOIN seats s ON s.id = bs.seat_id
-         WHERE c.id = ? AND b.deleted_at IS NULL
-         GROUP BY b.id
-         ORDER BY b.created_at DESC`,
-        [companies[0].id]
-    );
+         WHERE c.id = ? AND b.deleted_at IS NULL`;
+         
+    const params = [companies[0].id];
+    
+    if (q) {
+        sql += ' AND (b.booking_code LIKE ? OR u.full_name LIKE ? OR u.phone LIKE ? OR u.email LIKE ?)';
+        const search = '%' + q + '%';
+        params.push(search, search, search, search);
+    }
+
+    sql += ' GROUP BY b.id ORDER BY b.created_at DESC';
+
+    const [rows] = await db.execute(sql, params);
     return rows;
 };
 

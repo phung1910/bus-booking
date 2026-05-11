@@ -6,15 +6,15 @@ async function seedMore() {
 
         // 1. Add new Operators
         const newOperators = [
-            ['Nhà xe Hải Vân', 'haivan@operator.com', hash, 'operator', 'active', 1],
-            ['Nhà xe Hoàng Long', 'hoanglong@operator.com', hash, 'operator', 'active', 1],
-            ['Nhà xe Kumho', 'kumho@operator.com', hash, 'operator', 'active', 1]
+            ['Nhà xe Hải Vân', 'haivan@operator.com', '0912345678', hash, 'operator', 'active', 1],
+            ['Nhà xe Hoàng Long', 'hoanglong@operator.com', '0923456789', hash, 'operator', 'active', 1],
+            ['Nhà xe Kumho', 'kumho@operator.com', '0934567890', hash, 'operator', 'active', 1]
         ];
         
         for(let op of newOperators) {
             const [ex] = await db.query("SELECT id FROM users WHERE email=?", [op[1]]);
             if(ex.length === 0) {
-                const [res] = await db.query("INSERT INTO users (full_name, email, password_hash, role, status, is_verified) VALUES (?, ?, ?, ?, ?, ?)", op);
+                const [res] = await db.query("INSERT INTO users (full_name, email, phone, password_hash, role, status, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)", op);
                 // add company
                 await db.query("INSERT INTO companies (user_id, name, phone, status, commission_rate, avg_rating) VALUES (?, ?, ?, 'approved', 12.0, 4.2)", 
                 [res.insertId, op[0], '19001000']);
@@ -23,20 +23,24 @@ async function seedMore() {
 
         // 2. Add new Customers
         const newCustomers = [
-            ['Trần Văn Cường', 'cuong@gmail.com', hash, 'customer', 'active', 1],
-            ['Lê Thị Mai', 'mai@gmail.com', hash, 'customer', 'active', 1],
-            ['Phạm Tuấn Anh', 'tuananh@gmail.com', hash, 'customer', 'active', 1],
-            ['Nguyễn Lan', 'lan@gmail.com', hash, 'customer', 'active', 1]
+            ['Trần Văn Cường', 'cuong@gmail.com', '0987654321', hash, 'customer', 'active', 1],
+            ['Lê Thị Mai', 'mai@gmail.com', '0976543210', hash, 'customer', 'active', 1],
+            ['Phạm Tuấn Anh', 'tuananh@gmail.com', '0965432109', hash, 'customer', 'active', 1],
+            ['Nguyễn Lan', 'lan@gmail.com', '0954321098', hash, 'customer', 'active', 1]
         ];
 
         for(let cus of newCustomers) {
             const [ex] = await db.query("SELECT id FROM users WHERE email=?", [cus[1]]);
             if(ex.length === 0) {
-                await db.query("INSERT INTO users (full_name, email, password_hash, role, status, is_verified) VALUES (?, ?, ?, ?, ?, ?)", cus);
+                await db.query("INSERT INTO users (full_name, email, phone, password_hash, role, status, is_verified) VALUES (?, ?, ?, ?, ?, ?, ?)", cus);
             }
         }
 
         console.log("✅ Đã thêm các nhà xe và khách hàng mới.");
+
+        // Cập nhật số điện thoại ngẫu nhiên cho những user cũ đang bị thiếu số điện thoại
+        await db.query("UPDATE users SET phone = CONCAT('09', LPAD(FLOOR(RAND() * 100000000), 8, '0')) WHERE phone IS NULL");
+        console.log("✅ Đã điền số điện thoại cho các user cũ.");
 
         // 3. Tạo Bookings cho những ghế mồ côi
         const [users] = await db.query("SELECT id, full_name, email, phone FROM users WHERE role = 'customer'");

@@ -75,7 +75,7 @@ const getRevenueReport = async (req, res) => {
 
 const getMyBookings = async (req, res) => {
     try {
-        const data = await operatorService.getMyBookings(req.user.id);
+        const data = await operatorService.getMyBookings(req.user.id, req.query.q);
         return sendSuccess(res, data, 'Lấy danh sách đặt vé thành công.');
     } catch (e) {
         if (e.statusCode) return sendError(res, e.message, e.statusCode);
