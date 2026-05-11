@@ -213,7 +213,8 @@
               <td>
                 <div style="display:flex;gap:6px;flex-wrap:wrap">
                   ${c.status === 'pending' ? `<button class="btn btn-green btn-sm" onclick="approveCompany(${c.id})">Duyệt</button>` : ''}
-                  ${c.status !== 'blocked' ? `<button class="btn btn-danger btn-sm" onclick="blockCompany(${c.id})">Khóa</button>` : ''}
+                  ${c.status === 'blocked' ? `<button class="btn btn-green btn-sm" onclick="approveCompany(${c.id})">Mở khóa</button>` : ''}
+                  ${c.status === 'approved' ? `<button class="btn btn-danger btn-sm" onclick="blockCompany(${c.id})">Khóa</button>` : ''}
                   <button class="btn btn-outline btn-sm" onclick="setCommission(${c.id})">HH</button>
                 </div>
               </td>
