@@ -112,7 +112,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Số ghế (Tổng)</label>
-                                <input class="form-control" type="number" id="new-seats-count" value="40" disabled style="background:#f1f5f9; cursor:not-allowed;" />
+                                <input class="form-control" type="number" id="new-seats-count" value="40" oninput="onSeatsCountChange()" min="1" />
                             </div>
                         </div>
                         
@@ -593,7 +593,43 @@
             const seatsCountEl = document.getElementById('new-seats-count');
             
             if (activeCountEl) activeCountEl.textContent = activeCount;
-            if (seatsCountEl) seatsCountEl.value = activeCount;
+            if (seatsCountEl) {
+                // Chỉ gán value nếu phần tử không đang được focus (để tránh lỗi gián đoạn khi người dùng đang gõ)
+                if (document.activeElement !== seatsCountEl) {
+                    seatsCountEl.value = activeCount;
+                }
+            }
+        }
+
+        function onSeatsCountChange() {
+            const count = parseInt(document.getElementById('new-seats-count').value) || 0;
+            
+            // Set first `count` seats to active, and the rest to inactive
+            let activeSet = 0;
+            seatMapData.forEach(s => {
+                if (activeSet < count) {
+                    s.active = true;
+                    activeSet++;
+                } else {
+                    s.active = false;
+                }
+            });
+            
+            // If the requested count is greater than the current grid capacity, we can increase the rows
+            const capacity = seatMapData.length;
+            if (count > capacity) {
+                const cols = parseInt(document.getElementById('map-cols').value) || 1;
+                const neededRows = Math.ceil(count / cols);
+                document.getElementById('map-rows').value = neededRows;
+                rebuildSeatMapData();
+                return;
+            }
+            
+            // Cập nhật số đếm hiển thị trên bản đồ mà không ghi đè giá trị ô input người dùng đang gõ
+            const activeCountEl = document.getElementById('map-active-seats');
+            if (activeCountEl) activeCountEl.textContent = count;
+            
+            renderVisualSeatMap();
         }
 
         async function createTrip() {
