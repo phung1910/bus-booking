@@ -74,47 +74,112 @@
                     </div>
                 </div>
 
-                <!-- Form tạo chuyến mới -->
-                <div id="create-trip-section" style="display:none;margin-bottom:1.5rem">
-                    <div class="card" style="max-width:600px">
-                        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                            <span>Tạo chuyến xe mới</span>
-                            <span style="cursor:pointer;color:var(--gray-400);font-size:20px" onclick="toggleCreateTrip()">&times;</span>
+            <!-- Form tạo chuyến mới -->
+            <div id="create-trip-section" style="display:none;margin-bottom:1.5rem">
+                <div class="card" style="max-width:650px">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                        <span>Tạo chuyến xe mới</span>
+                        <span style="cursor:pointer;color:var(--gray-400);font-size:20px" onclick="toggleCreateTrip()">&times;</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">Tuyến đường</label>
+                            <select class="form-control" id="new-route"></select>
                         </div>
-                        <div class="card-body">
+                        <div class="grid-2">
                             <div class="form-group">
-                                <label class="form-label">Tuyến đường</label>
-                                <select class="form-control" id="new-route"></select>
+                                <label class="form-label">Giờ khởi hành</label>
+                                <input class="form-control" type="datetime-local" id="new-dept" />
                             </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label">Giờ khởi hành</label>
-                                    <input class="form-control" type="datetime-local" id="new-dept" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Giờ đến dự kiến</label>
-                                    <input class="form-control" type="datetime-local" id="new-arrv" />
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label">Giờ đến dự kiến</label>
+                                <input class="form-control" type="datetime-local" id="new-arrv" />
                             </div>
-                            <div class="grid-2">
-                                <div class="form-group">
-                                    <label class="form-label">Giá vé (VNĐ)</label>
-                                    <input class="form-control" type="number" id="new-price" placeholder="250000" />
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Loại xe</label>
-                                    <select class="form-control" id="new-vtype">
-                                        <option value="seat">Ghế ngồi (40 ghế)</option>
-                                        <option value="sleeper">Giường nằm (60 ghế)</option>
-                                        <option value="limousine">Limousine (18 ghế)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button class="btn btn-amber btn-block" onclick="createTrip()">Xác nhận Tạo chuyến</button>
-                            <div id="create-result" style="margin-top:12px"></div>
                         </div>
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label class="form-label">Giá vé (VNĐ)</label>
+                                <input class="form-control" type="number" id="new-price" placeholder="250000" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Loại xe</label>
+                                <select class="form-control" id="new-vtype" onchange="initSeatMapFromTemplate()">
+                                    <option value="seat">Ghế ngồi</option>
+                                    <option value="sleeper">Giường nằm</option>
+                                    <option value="limousine">Limousine</option>
+                                    <option value="other">Khác (tự nhập)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Số ghế (Tổng)</label>
+                                <input class="form-control" type="number" id="new-seats-count" value="40" disabled style="background:#f1f5f9; cursor:not-allowed;" />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="custom-vtype-wrapper" style="display:none">
+                            <label class="form-label">Tên loại xe tự nhập</label>
+                            <input class="form-control" id="new-custom-vtype" placeholder="Ví dụ: Xe VIP Limousine 9 chỗ" />
+                        </div>
+                        
+                        <div class="divider"></div>
+                        <div style="font-weight: bold; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🗺 Thiết lập bản đồ ghế</span>
+                            <span style="font-size: 13px; font-weight: normal; color: var(--gray-600)">Đã bật: <strong id="map-active-seats" style="color: var(--amber)">40</strong> ghế</span>
+                        </div>
+
+                        <div class="grid-3" style="margin-bottom:1rem">
+                            <div class="form-group">
+                                <label class="form-label" style="font-size:11px">Số hàng (Rows)</label>
+                                <input class="form-control" type="number" id="map-rows" value="10" min="1" max="25" onchange="rebuildSeatMapData()" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" style="font-size:11px">Số cột (Cols)</label>
+                                <input class="form-control" type="number" id="map-cols" value="4" min="1" max="10" onchange="rebuildSeatMapData()" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" style="font-size:11px">Số tầng (Floors)</label>
+                                <select class="form-control" id="map-floors" onchange="onFloorChange()">
+                                    <option value="1">1 Tầng</option>
+                                    <option value="2">2 Tầng</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Selector tầng (nếu xe 2 tầng) -->
+                        <div id="floor-select-wrapper" style="display:none; margin-bottom: 1rem; gap: 8px; justify-content: center;">
+                            <button type="button" class="btn btn-sm btn-primary" id="btn-floor-1" onclick="switchFloor(1)">Tầng 1 (Dưới)</button>
+                            <button type="button" class="btn btn-sm" id="btn-floor-2" onclick="switchFloor(2)">Tầng 2 (Trên)</button>
+                        </div>
+
+                        <!-- Lưới bản đồ ghế -->
+                        <div id="visual-seat-grid" style="margin-bottom: 1rem;">
+                            <!-- Sơ đồ sẽ được vẽ bằng JS ở đây -->
+                        </div>
+
+                        <!-- Chú thích loại ghế -->
+                        <div style="display:flex; justify-content: center; gap: 1.5rem; font-size: 13px; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                            <div style="display:flex; align-items:center; gap: 6px;">
+                                <div style="width: 16px; height: 16px; background: var(--blue); border-radius: 4px;"></div>
+                                <span>Ghế thường</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap: 6px;">
+                                <div style="width: 16px; height: 16px; background: var(--amber); border-radius: 4px;"></div>
+                                <span>Ghế VIP</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap: 6px;">
+                                <div style="width: 16px; height: 16px; background: #ffffff; border: 1.5px dashed var(--gray-200); border-radius: 4px;"></div>
+                                <span>Lối đi / Trống</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--gray-600); margin-bottom: 1.5rem; text-align: center; background: var(--gray-50); padding: 8px; border-radius: 6px;">
+                            💡 Click vào ô ghế để thay đổi: <strong>Thường</strong> ➔ <strong>VIP</strong> ➔ <strong>Lối đi/Trống</strong>. Bạn có thể sửa trực tiếp mã ghế trong các ô.
+                        </div>
+
+                        <button class="btn btn-amber btn-block" onclick="createTrip()">Xác nhận Tạo chuyến</button>
+                        <div id="create-result" style="margin-top:12px"></div>
                     </div>
                 </div>
+            </div>
 
                 <div class="card">
                     <div class="card-body" id="trips-table">
@@ -210,6 +275,7 @@
             if (section.style.display === 'none') {
                 section.style.display = 'block';
                 loadRoutes(); // Tải danh sách tuyến đường khi mở form
+                initSeatMapFromTemplate(); // Khởi tạo sơ đồ ghế mặc định
             } else {
                 section.style.display = 'none';
             }
@@ -305,13 +371,264 @@
             }
         }
 
+        // ── Trình tạo bản đồ ghế ──
+        let currentFloor = 1;
+        let seatMapData = []; // Mảng chứa thông tin ghế: { row, col, floor, seat_code, seat_type, active }
+
+        function initSeatMapFromTemplate() {
+            const vtype = document.getElementById('new-vtype').value;
+            const customWrapper = document.getElementById('custom-vtype-wrapper');
+            
+            if (vtype === 'other') {
+                customWrapper.style.display = 'block';
+                document.getElementById('map-rows').value = 5;
+                document.getElementById('map-cols').value = 4;
+                document.getElementById('map-floors').value = 1;
+            } else {
+                customWrapper.style.display = 'none';
+                if (vtype === 'seat') {
+                    document.getElementById('map-rows').value = 10;
+                    document.getElementById('map-cols').value = 4;
+                    document.getElementById('map-floors').value = 1;
+                } else if (vtype === 'sleeper') {
+                    document.getElementById('map-rows').value = 10;
+                    document.getElementById('map-cols').value = 3;
+                    document.getElementById('map-floors').value = 2;
+                } else if (vtype === 'limousine') {
+                    document.getElementById('map-rows').value = 9;
+                    document.getElementById('map-cols').value = 2;
+                    document.getElementById('map-floors').value = 1;
+                }
+            }
+            
+            currentFloor = 1;
+            rebuildSeatMapData();
+        }
+
+        function rebuildSeatMapData() {
+            const rows = parseInt(document.getElementById('map-rows').value) || 1;
+            const cols = parseInt(document.getElementById('map-cols').value) || 1;
+            const floors = parseInt(document.getElementById('map-floors').value) || 1;
+            const vtype = document.getElementById('new-vtype').value;
+
+            // Hiển thị chọn tầng nếu xe có 2 tầng
+            const floorSelect = document.getElementById('floor-select-wrapper');
+            if (floors > 1) {
+                floorSelect.style.display = 'flex';
+            } else {
+                floorSelect.style.display = 'none';
+                currentFloor = 1;
+            }
+
+            const newMapData = [];
+            const colLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+
+            for (let f = 1; f <= floors; f++) {
+                const prefix = floors > 1 ? (f === 1 ? 'L' : 'U') : '';
+                
+                for (let r = 1; r <= rows; r++) {
+                    for (let c = 1; c <= cols; c++) {
+                        const colLetter = colLabels[c - 1] || `C${c}`;
+                        const defaultCode = `${prefix}${colLetter}${r}`;
+                        
+                        // Cố gắng giữ lại thông tin ghế cũ nếu nằm trong phạm vi kích thước mới
+                        const existing = seatMapData.find(s => s.row === r && s.col === c && s.floor === f);
+                        if (existing) {
+                            newMapData.push(existing);
+                        } else {
+                            // Xác định loại ghế mặc định dựa trên loại xe
+                            let seatType = 'aisle';
+                            if (vtype === 'limousine') {
+                                seatType = 'vip';
+                            } else if (vtype === 'seat') {
+                                seatType = (c === 1 || c === cols) ? 'window' : 'aisle';
+                            } else if (vtype === 'sleeper') {
+                                seatType = (c === 1 || c === cols) ? 'window' : 'aisle';
+                            }
+                            
+                            newMapData.push({
+                                row: r,
+                                col: c,
+                                floor: f,
+                                seat_code: defaultCode,
+                                seat_type: seatType,
+                                active: true
+                            });
+                        }
+                    }
+                }
+            }
+
+            seatMapData = newMapData;
+            switchFloor(currentFloor); // vẽ lại
+        }
+
+        function renderVisualSeatMap() {
+            const rows = parseInt(document.getElementById('map-rows').value) || 1;
+            const cols = parseInt(document.getElementById('map-cols').value) || 1;
+            
+            const gridContainer = document.getElementById('visual-seat-grid');
+            gridContainer.innerHTML = '';
+            
+            // Cập nhật thuộc tính grid css trực tiếp
+            gridContainer.style.display = 'grid';
+            gridContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(50px, 1fr))`;
+            gridContainer.style.gap = '8px';
+            gridContainer.style.background = '#f8fafc';
+            gridContainer.style.padding = '12px';
+            gridContainer.style.borderRadius = '8px';
+            gridContainer.style.border = '1px dashed var(--gray-200)';
+            gridContainer.style.maxHeight = '350px';
+            gridContainer.style.overflowY = 'auto';
+
+            const currentSeats = seatMapData.filter(s => s.floor === currentFloor);
+
+            for (let r = 1; r <= rows; r++) {
+                for (let c = 1; c <= cols; c++) {
+                    const seat = currentSeats.find(s => s.row === r && s.col === c);
+                    if (!seat) continue;
+
+                    const cell = document.createElement('div');
+                    
+                    // Cập nhật giao diện
+                    updateCellStyling(cell, seat);
+
+                    // Click để xoay vòng trạng thái: Thường -> VIP -> Trống -> Thường
+                    cell.onclick = (e) => {
+                        if (e.target.tagName === 'INPUT') return; // Không click khi đang sửa tên
+
+                        if (!seat.active) {
+                            seat.active = true;
+                            seat.seat_type = 'aisle';
+                        } else if (seat.seat_type === 'aisle' || seat.seat_type === 'window') {
+                            seat.seat_type = 'vip';
+                        } else {
+                            seat.active = false;
+                        }
+
+                        updateCellStyling(cell, seat);
+                        updateTotalActiveSeatsCount();
+                    };
+
+                    gridContainer.appendChild(cell);
+                }
+            }
+
+            updateTotalActiveSeatsCount();
+        }
+
+        function updateCellStyling(cell, seat) {
+            cell.className = 'seat-creator-cell';
+            cell.innerHTML = '';
+
+            if (!seat.active) {
+                cell.classList.add('inactive');
+                const label = document.createElement('span');
+                label.style.fontSize = '10px';
+                label.textContent = 'Trống';
+                cell.appendChild(label);
+            } else {
+                if (seat.seat_type === 'vip') {
+                    cell.classList.add('active-vip');
+                } else {
+                    cell.classList.add('active-normal');
+                }
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = seat.seat_code;
+                input.style.width = '100%';
+                input.style.background = 'transparent';
+                input.style.border = 'none';
+                input.style.color = 'inherit';
+                input.style.textAlign = 'center';
+                input.style.fontSize = '12px';
+                input.style.fontWeight = 'bold';
+                input.style.borderRadius = '3px';
+                input.style.outline = 'none';
+
+                input.onchange = (e) => {
+                    seat.seat_code = e.target.value;
+                };
+                
+                // Ngăn chặn sự kiện click lan ra ngoài
+                input.onclick = (e) => e.stopPropagation();
+
+                cell.appendChild(input);
+
+                const typeLabel = document.createElement('span');
+                typeLabel.style.fontSize = '9px';
+                typeLabel.style.marginTop = '4px';
+                typeLabel.style.opacity = '0.9';
+                typeLabel.textContent = seat.seat_type === 'vip' ? 'VIP' : 'Thường';
+                cell.appendChild(typeLabel);
+            }
+        }
+
+        function switchFloor(floor) {
+            currentFloor = floor;
+            
+            const btn1 = document.getElementById('btn-floor-1');
+            const btn2 = document.getElementById('btn-floor-2');
+            
+            if (btn1 && btn2) {
+                if (floor === 1) {
+                    btn1.className = 'btn btn-sm btn-primary';
+                    btn2.className = 'btn btn-sm btn-outline';
+                } else {
+                    btn1.className = 'btn btn-sm btn-outline';
+                    btn2.className = 'btn btn-sm btn-primary';
+                }
+            }
+            renderVisualSeatMap();
+        }
+
+        function onFloorChange() {
+            rebuildSeatMapData();
+        }
+
+        function updateTotalActiveSeatsCount() {
+            const activeCount = seatMapData.filter(s => s.active).length;
+            const activeCountEl = document.getElementById('map-active-seats');
+            const seatsCountEl = document.getElementById('new-seats-count');
+            
+            if (activeCountEl) activeCountEl.textContent = activeCount;
+            if (seatsCountEl) seatsCountEl.value = activeCount;
+        }
+
         async function createTrip() {
+            const vtypeSelect = document.getElementById('new-vtype').value;
+            let vehicle_type = vtypeSelect;
+            if (vtypeSelect === 'other') {
+                const customVal = document.getElementById('new-custom-vtype').value.trim();
+                if (!customVal) {
+                    alert('Vui lòng nhập tên loại xe tự chọn.');
+                    return;
+                }
+                vehicle_type = customVal;
+            }
+
+            // Lọc danh sách ghế được bật trên sơ đồ
+            const activeSeats = seatMapData
+                .filter(s => s.active)
+                .map(s => ({
+                    seat_code: s.seat_code.trim(),
+                    seat_type: s.seat_type,
+                    floor: s.floor
+                }));
+
+            if (activeSeats.length === 0) {
+                alert('Vui lòng chọn hoặc cấu hình ít nhất 1 ghế trên bản đồ.');
+                return;
+            }
+
             const body = {
                 route_id: +document.getElementById('new-route').value,
                 departure_time: document.getElementById('new-dept').value.replace('T', ' '),
                 arrival_time: document.getElementById('new-arrv').value.replace('T', ' '),
                 base_price: +document.getElementById('new-price').value,
-                vehicle_type: document.getElementById('new-vtype').value
+                vehicle_type: vehicle_type,
+                seats: activeSeats
             };
 
             const res = await POST('/operator/trips', body, true);

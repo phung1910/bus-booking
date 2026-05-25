@@ -118,7 +118,7 @@
               <div>🚌 <strong>${b.company_name}</strong></div>
               <div>📍 ${b.from_city} → ${b.to_city}</div>
               <div>🕐 ${formatDateTime(b.departure_time)}</div>
-              <div>💺 ${b.seat_count} ghế · ${b.vehicle_type === 'sleeper' ? 'Giường nằm' : b.vehicle_type === 'limousine' ? 'Limousine' : 'Ghế ngồi'}</div>
+              <div>💺 ${b.seat_count} ghế · ${b.vehicle_type === 'sleeper' ? 'Giường nằm' : b.vehicle_type === 'limousine' ? 'Limousine' : b.vehicle_type === 'seat' ? 'Ghế ngồi' : b.vehicle_type}</div>
             </div>
           </div>
 

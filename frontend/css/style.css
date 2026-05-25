@@ -972,3 +972,66 @@ button {
         display: none;
     }
 }
+
+/* ── Visual Seat Map Creator ── */
+.seat-creator-cell {
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 6px;
+    cursor: pointer;
+    transition: all .2s ease;
+    min-height: 65px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.seat-creator-cell:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.seat-creator-cell input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: inherit;
+    outline: none;
+}
+
+.seat-creator-cell.active-normal {
+    background: var(--blue);
+    color: var(--white);
+    border-color: var(--blue);
+}
+
+.seat-creator-cell.active-normal:hover {
+    background: #1d4ed8;
+}
+
+.seat-creator-cell.active-vip {
+    background: var(--amber);
+    color: var(--navy);
+    border-color: var(--amber);
+}
+
+.seat-creator-cell.active-vip:hover {
+    background: var(--amber-light);
+}
+
+.seat-creator-cell.inactive {
+    background: var(--white);
+    border: 1.5px dashed var(--gray-200);
+    color: var(--gray-400);
+}
+
+.seat-creator-cell.inactive:hover {
+    border-color: var(--gray-400);
+}

@@ -1,4 +1,4 @@
-﻿SET NAMES utf8mb4;
+SET NAMES utf8mb4;
 -- ============================================================
 -- HỆ THỐNG ĐẶT VÉ XE KHÁCH ĐA NHÀ XE
 -- Phiên bản: 1.0 | Phase 1: Core Schema
@@ -124,8 +124,7 @@ CREATE TABLE trips (
   base_price      DECIMAL(12,2) NOT NULL,
 
   -- Loại xe
-  vehicle_type    ENUM('seat','sleeper','limousine')
-                                NOT NULL DEFAULT 'seat',
+  vehicle_type    VARCHAR(50)   NOT NULL DEFAULT 'seat',
 
   -- Tổng số ghế & số ghế còn trống (cache để query nhanh)
   total_seats     INT UNSIGNED  NOT NULL DEFAULT 40,

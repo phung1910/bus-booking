@@ -27,11 +27,11 @@ const getMyCompany = async (req, res) => {
 
 const createTrip = async (req, res) => {
     try {
-        const { route_id, departure_time, arrival_time, base_price, vehicle_type } = req.body;
+        const { route_id, departure_time, arrival_time, base_price, vehicle_type, seats } = req.body;
         if (!route_id || !departure_time || !arrival_time || !base_price)
             return sendError(res, 'Vui lòng điền đầy đủ thông tin chuyến xe.', 400);
         const data = await operatorService.createTrip(req.user.id,
-            { route_id, departure_time, arrival_time, base_price, vehicle_type });
+            { route_id, departure_time, arrival_time, base_price, vehicle_type, seats });
         return sendSuccess(res, data, `Tạo chuyến thành công! Đã sinh ${data.seatsGenerated} ghế.`, 201);
     } catch (e) {
         if (e.statusCode) return sendError(res, e.message, e.statusCode);

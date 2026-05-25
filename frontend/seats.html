@@ -250,7 +250,7 @@
       <div class="summary-row"><span>Tuyến</span><strong>${tripData.from_city} → ${tripData.to_city}</strong></div>
       <div class="summary-row"><span>Khởi hành</span><strong>${formatDateTime(tripData.departure_time)}</strong></div>
       <div class="summary-row"><span>Dự kiến đến</span><strong>${tripData.arrival_time ? formatDateTime(tripData.arrival_time) : 'Chưa cập nhật'}</strong></div>
-      <div class="summary-row"><span>Loại xe</span><strong>${{ seat: 'Ghế ngồi', sleeper: 'Giường nằm', limousine: 'Limousine' }[tripData.vehicle_type]}</strong></div>
+      <div class="summary-row"><span>Loại xe</span><strong>${{ seat: 'Ghế ngồi', sleeper: 'Giường nằm', limousine: 'Limousine' }[tripData.vehicle_type] || tripData.vehicle_type}</strong></div>
     `;
 
             document.getElementById('price-per-seat').textContent = formatPrice(tripData.base_price);

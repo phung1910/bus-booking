@@ -38,7 +38,7 @@ const getMyCompany = async (userId) => {
 };
 
 // Tạo chuyến xe mới + tự động sinh ghế (FR-04 + FR-05)
-const createTrip = async (userId, { route_id, departure_time, arrival_time, base_price, vehicle_type }) => {
+const createTrip = async (userId, { route_id, departure_time, arrival_time, base_price, vehicle_type, seats: customSeats }) => {
     // Kiểm tra nhà xe tồn tại và đã được duyệt (BR-13)
     const [companies] = await db.execute(
         "SELECT id, status FROM companies WHERE user_id = ? AND deleted_at IS NULL",
@@ -65,7 +65,17 @@ const createTrip = async (userId, { route_id, departure_time, arrival_time, base
     if (dept <= new Date())
         throw { statusCode: 400, message: 'Giờ khởi hành phải ở tương lai.' };
 
-    const seats = generateSeats(vehicle_type || 'seat');
+    let seats = [];
+    if (customSeats && Array.isArray(customSeats) && customSeats.length > 0) {
+        seats = customSeats.map(s => ({
+            seat_code: s.seat_code,
+            seat_type: s.seat_type || 'aisle',
+            floor: s.floor || 1,
+            status: 'available'
+        }));
+    } else {
+        seats = generateSeats(vehicle_type || 'seat');
+    }
     const totalSeats = seats.length;
 
     // Dùng transaction: tạo trip + ghế phải thành công cùng lúc
